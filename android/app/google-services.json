@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "431950103039",
+    "project_id": "businessapp-f0d62",
+    "storage_bucket": "businessapp-f0d62.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431950103039:android:f697836f9995901a5b67ca",
+        "android_client_info": {
+          "package_name": "com.adminApp.shop24"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs8mfl8FtKYw3E-2bt9CsaNbSHlQzINmM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:431950103039:android:f017d7a5a90494195b67ca",
+        "android_client_info": {
+          "package_name": "com.multiTest.app24"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBs8mfl8FtKYw3E-2bt9CsaNbSHlQzINmM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
