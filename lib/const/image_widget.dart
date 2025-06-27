@@ -89,13 +89,13 @@ class ImageWidget extends StatelessWidget {
                       height: 430,
                       child: GridView.builder(
                         shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: controller.imagesBytes.length,
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 12,
-                          childAspectRatio: 0.66,
+                          mainAxisSpacing: 5,
+                          crossAxisSpacing: 5,
+                          childAspectRatio: 0.96,
                         ),
                         itemBuilder: (context, index) {
                           return Card(
@@ -115,7 +115,7 @@ class ImageWidget extends StatelessWidget {
                               ),
                               child: Image.memory(
                                 controller.imagesBytes[index],
-                                fit: BoxFit.contain,
+                                fit: BoxFit.fill,
                                // width: double.infinity,
                                 height: 55,
                               ),

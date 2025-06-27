@@ -248,10 +248,12 @@ Widget _buildImageGallery(BuildContext context, AdminCubit cubit) {
   ) {
     return Row(
       children: [
-        Expanded(child: CustomTextFormField(controller: controller1, hint: hint1, max: maxLines, 
+        Expanded(child:
+        CustomTextFormField(controller: controller1, hint: hint1, max: maxLines,
         
         obx: false, ontap: (){}, type:TextInputType.text, obs: false, color: Colors.black,
-        )),
+        )
+        ),
 
         const SizedBox(width: 12),
 

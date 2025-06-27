@@ -80,10 +80,13 @@ class EditProduct extends StatelessWidget {
               child: Column(
                 children:   [
 
-                  SizedBox(
-                     // height:111,
+                  SizedBox(height:222,
                       width: MediaQuery.of(context).size.width,
-                      child: Image.network(posts['image'])),
+                      child: ClipRect(
+                          child: Image.network(posts['image'],
+
+                          fit:BoxFit.contain,
+                          ))),
 
                   const SizedBox(height: 10,),
                   // const Custom_Text(text: 'اضف صورة جديدة ',color:Colors.black,
@@ -162,17 +165,17 @@ class EditProduct extends StatelessWidget {
             alignment:Alignment.center,
             fontSize:25,color:Colors.black,
             ),
-            const SizedBox(height: 11,),
-            CustomTextFormField(
-              controller:cubit.priceVal,
-              color:Colors.black,
-              hint: posts['value'].toString(),
-              max: 2,
-              obs: false,
-              obx: false,
-              ontap:(){},
-              type:TextInputType.number,
-            ),
+          //  const SizedBox(height: 11,),
+            // CustomTextFormField(
+            //   controller:cubit.priceVal,
+            //   color:Colors.black,
+            //   hint: posts['value'].toString(),
+            //   max: 2,
+            //   obs: false,
+            //   obx: false,
+            //   ontap:(){},
+            //   type:TextInputType.number,
+            // ),
             const SizedBox(height: 10,),
 
             const Custom_Text(text: 'الوصف  ',

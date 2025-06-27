@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:shop_app/presentation/widgets/Custom_Text.dart';
+import '../../../../const/cat_controller.dart';
+import '../../../../const/image_widget.dart';
 import '../../../bloc/admin/admin-states.dart';
 import '../../../bloc/admin/admin_cubit.dart';
 import '../../../const/app_message.dart';
 import '../../../resources/color_manager.dart';
-
 import '../../../widgets/Custom_button.dart';
 import '../../../widgets/custom_textformfield.dart';
 import '../admin_view.dart';
@@ -17,200 +18,167 @@ class AddNewCat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    CatController catController = Get.put(CatController());
+
     return BlocProvider(
-        create: (BuildContext context) => AdminCubit(),
-        child: BlocConsumer<AdminCubit, AdminStates>(
+      create: (_) => AdminCubit(),
+      child: BlocConsumer<AdminCubit, AdminStates>(
+        listener: (context, state) {
+          if (state is AddNewCatSuccessState) {
+            appMessage(text: 'تم اضافة القسم بنجاح');
+            Get.offAll(const AdminView());
+          }
+        },
+        builder: (context, state) {
+          final cubit = AdminCubit.get(context);
+          final isImagesSelected =
+              cubit.pickedImageXFiles != null && cubit.pickedImageXFiles!.isNotEmpty;
 
-            listener: (context, state) {
+          return Scaffold(
+            backgroundColor: Colors.grey[100],
+            appBar: AppBar(
+              elevation: 0,
+              toolbarHeight: 5,
+              backgroundColor: ColorsManager.primary,
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Logo
+                  // Container(
+                  //   height: 100,
+                  //   width: 200,
+                  //   margin: const EdgeInsets.only(bottom: 30),
+                  //   child: Image.asset('assets/images/logo.png'),
+                  // ),
 
-              if(state is AddNewCatSuccessState){
+                  // Image Section Title
+                  const ImageWidget(txt: 'اضف صورة القسم'),
+                  //const SizedBox(height: 16),
 
-                appMessage(text: 'تم اضافة القسم بنجاح');
+                  // // Image Picker and Preview
+                  // isImagesSelected
+                  //     ? Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   children: [
+                  //     SizedBox(
+                  //       height: 110,
+                  //       child: ListView.separated(
+                  //         scrollDirection: Axis.horizontal,
+                  //         itemCount: cubit.pickedImageXFiles!.length,
+                  //         separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  //         itemBuilder: (context, index) {
+                  //           return ClipRRect(
+                  //             borderRadius: BorderRadius.circular(15),
+                  //             child: Image.file(
+                  //               File(cubit.pickedImageXFiles![index].path),
+                  //               height: 180,
+                  //               width: 180,
+                  //               fit: BoxFit.cover,
+                  //             ),
+                  //           );
+                  //         },
+                  //       ),
+                  //     ),
+                  //     //const SizedBox(height: 20),
+                  //     // ElevatedButton.icon(
+                  //     //   onPressed: cubit.pickMultiImage,
+                  //     //   icon: const Icon(Icons.add_a_photo_rounded),
+                  //     //   label: const Text("إضافة صور أخرى"),
+                  //     //   style: ElevatedButton.styleFrom(
+                  //     //     backgroundColor: ColorsManager.primary,
+                  //     //     foregroundColor: Colors.white,
+                  //     //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  //     //     shape: RoundedRectangleBorder(
+                  //     //       borderRadius: BorderRadius.circular(12),
+                  //     //     ),
+                  //     //   ),
+                  //     // ),
+                  //   ],
+                  // )
+                  //     : InkWell(
+                  //   onTap: cubit.pickMultiImage,
+                  //   child: Container(
+                  //     padding: const EdgeInsets.symmetric(vertical: 40),
+                  //     width: double.infinity,
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.white,
+                  //       borderRadius: BorderRadius.circular(12),
+                  //       border: Border.all(color: Colors.grey.shade300),
+                  //       boxShadow: [
+                  //         BoxShadow(
+                  //           color: Colors.grey.withOpacity(0.1),
+                  //           blurRadius: 10,
+                  //           offset: const Offset(0, 4),
+                  //         )
+                  //       ],
+                  //     ),
+                  //     child: const Column(
+                  //       mainAxisAlignment: MainAxisAlignment.center,
+                  //       children: [
+                  //         Icon(Icons.image_outlined, size: 60, color: Colors.grey),
+                  //         SizedBox(height: 10),
+                  //         Custom_Text(
+                  //           text: 'اضغط لإضافة الصور',
+                  //           color: Colors.black54,
+                  //           fontSize: 18,
+                  //           alignment: Alignment.center,
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
 
-                Get.offAll(const AdminView());
+                  const SizedBox(height: 30),
 
-              }
-            },
+                  // English Name Field
+                  CustomTextFormField(
+                    controller: cubit.nameController,
+                    hint: "اسم القسم باللغة الإنجليزية",
+                    color: Colors.black,
+                    max: 2,
+                    obs: false,
+                    obx: false,
+                    ontap: () {},
+                    type: TextInputType.text,
+                  ),
+                  const SizedBox(height: 20),
 
-            builder: (context, state) {
+                  // Arabic Name Field
+                  CustomTextFormField(
+                    controller: cubit.nameArController,
+                    hint: "اسم القسم باللغة العربية",
+                    color: Colors.black,
+                    max: 2,
+                    obs: false,
+                    obx: false,
+                    ontap: () {},
+                    type: TextInputType.text,
+                  ),
 
-              AdminCubit cubit = AdminCubit.get(context);
-              return Scaffold(
-                backgroundColor:Colors.white,
-                appBar:AppBar(
-                  elevation: 0,
-                  toolbarHeight: 5,
-                  backgroundColor:ColorsManager.primary,
-                ),
-                body:
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(17.0),
-                    child: Column(
-                      children:  [
-                        const SizedBox(height: 20,),
+                  const SizedBox(height: 30),
 
-
-                        Container(
-                            height: 140,
-                            width: 600,
-                            color:Colors.white,
-                            child: Image.asset('assets/images/logo.png')),
-
-
-
-
-  (cubit.pickedImageXFiles != null
-                            && cubit.pickedImageXFiles!.isNotEmpty)?
-                        Column(
-                          children: [
-                            InkWell(
-                              child: Container(
-                                height:  MediaQuery.of(context).size.width*0.41,
-                                width: MediaQuery.of(context).size.width*0.6,
-                                decoration:BoxDecoration(
-                                    image: DecorationImage(
-                                        image:
-
-                                        FileImage(
-                                            File(cubit.pickedImageXFiles![0]
-                                                .path)),
-
-                                        fit:BoxFit.fill
-                                    )
-                                ),
-                              ),
-                              onTap:(){
-                                cubit.pickMultiImage();
-                              },
-                            ),
-
-                            const SizedBox(height: 31,),
-                            const Divider(),
-                            (cubit.pickedImageXFiles!.length>1)?
-                            Container(
-                              height:  MediaQuery.of(context).size.width*0.41,
-                              width: MediaQuery.of(context).size.width*0.6,
-                              decoration:BoxDecoration(
-                                  image: DecorationImage(
-                                      image:FileImage(
-                                          File(cubit.pickedImageXFiles![1].path)),
-                                      fit:BoxFit.fill
-                                  )
-                              ),
-                            ):const SizedBox(),
-
-                            (cubit.pickedImageXFiles!.length>2)?
-                            Container(
-                              height:  MediaQuery.of(context).size.width*0.41,
-                              width: MediaQuery.of(context).size.width*0.6,
-                              decoration:BoxDecoration(
-                                  image: DecorationImage(
-                                      image:FileImage(
-                                          File(cubit.pickedImageXFiles![2].path)),
-                                      fit:BoxFit.fill
-                                  )
-                              ),
-                            ):const SizedBox(),
-
-                            (cubit.pickedImageXFiles!.length>3)?
-                            Container(
-                              height:  MediaQuery.of(context).size.width*0.41,
-                              width: MediaQuery.of(context).size.width*0.6,
-                              decoration:BoxDecoration(
-                                  image: DecorationImage(
-                                      image:FileImage(
-                                          File(cubit.pickedImageXFiles![3].path)),
-                                      fit:BoxFit.fill
-                                  )
-                              ),
-                            ):const SizedBox(),
-
-                            (cubit.pickedImageXFiles!.length>4)?
-                            Container(
-                              height:  MediaQuery.of(context).size.width*0.41,
-                              width: MediaQuery.of(context).size.width*0.6,
-                              decoration:BoxDecoration(
-                                  image: DecorationImage(
-                                      image:FileImage(
-                                          File(cubit.pickedImageXFiles![4].path)),
-                                      fit:BoxFit.fill
-                                  )
-                              ),
-                            ):const SizedBox(),
-
-                            (cubit.pickedImageXFiles!.length>5)?
-                            Container(
-                              height:  MediaQuery.of(context).size.width*0.41,
-                              width: MediaQuery.of(context).size.width*0.6,
-                              decoration:BoxDecoration(
-                                  image: DecorationImage(
-                                      image:FileImage(
-                                          File(cubit.pickedImageXFiles![5].path)),
-                                      fit:BoxFit.fill
-                                  )
-                              ),
-                            ):const SizedBox(),
-                          ],
-                        ):  InkWell(
-                          child: const Column(
-                            children: [
-
-                              CircleAvatar(
-                                radius: 100,
-                                child:Icon(Icons.image,size: 60,)
-                              ),
-                              SizedBox(height: 10,),
-                              Custom_Text(text: 'اضف صورة ',color:Colors.black,
-                                fontSize:21,alignment:Alignment.center,
-                              ),
-                            ],
-                          ),
-                          onTap:(){
-                            cubit.pickMultiImage();
-                          //  cubit.showDialogBox(context);
-                          },
-                        ),
-
-
-                        const SizedBox(height: 20,),
-                        CustomTextFormField(
-                          controller:cubit.nameController,
-                          color:Colors.black,
-                          hint: "  اسم القسم بالغة الانجليزية  ",
-                          max: 2,
-                          obs: false,
-                          obx: false,
-                          ontap:(){},
-                          type:TextInputType.text,
-                        ),
-                          const SizedBox(height: 20,),
-                        CustomTextFormField(
-                          controller:cubit.nameArController,
-                          color:Colors.black,
-                          hint: "  اسم القسم بالغة العربية  ",
-                          max: 2,
-                          obs: false,
-                          obx: false,
-                          ontap:(){},
-                          type:TextInputType.text,
-                        ),
-                        const SizedBox(height: 20,),
-
-                        CustomButton(text: "اضافة",
-                            onPressed: (){
-
-                              cubit. addCatToFireBase();
-
-
-                            }, color1:ColorsManager.primary,
-                            color2: Colors.white),
-                        const SizedBox(height: 30,),
-                      ],
+                  // Submit Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      text: "إضافة القسم",
+                      onPressed: () {
+                        cubit.addCatToFireBase(catController.uploadedFileURLs);
+                      },
+                      color1: ColorsManager.primary,
+                      color2: Colors.white,
                     ),
                   ),
-                ),
-              );
-            }));
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

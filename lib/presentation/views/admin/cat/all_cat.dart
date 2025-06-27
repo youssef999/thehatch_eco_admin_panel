@@ -17,79 +17,140 @@ class CatView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:AppBar(
-        toolbarHeight: 3,
-        backgroundColor:ColorsManager.primary,
+      appBar: AppBar(
+        toolbarHeight: 60,
+        backgroundColor: ColorsManager.primary,
+        title: const Text(
+          "الأقسام",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
       ),
-      body:ListView(
-        children: [
-          CatWidget()
+      body: const CatWidget(),
+    );
+  }
+}
+
+class CatWidget extends StatelessWidget {
+  const CatWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('cat').snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("لا توجد بيانات حالياً."));
+        }
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.64,
+          ),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            DocumentSnapshot post = snapshot.data!.docs[index];
+
+            return InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {},
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: ColorsManager.primary2,
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          post['image'],
+                          height: 183,
+                         // width: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Custom_Text(
+                        text: post['name'],
+                        fontSize: 16,
+                        alignment: Alignment.center,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(height: 14),
+                      CustomButton(
+                        text: 'حذف القسم',
+                        onPressed: () {
+                          _showDeleteDialog(context, post['name']);
+                        },
+                        color1: Colors.red.shade700,
+                        color2: Colors.red.shade300,
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, String name) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("تأكيد الحذف"),
+        content: Text("هل أنت متأكد أنك تريد حذف القسم '$name'؟"),
+        actions: [
+          TextButton(
+            child: const Text("إلغاء"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          ElevatedButton(
+            child: const Text("حذف"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await DeleteCatByName(name);
+            },
+          ),
         ],
       ),
     );
   }
 }
 
-Widget CatWidget() {
-  return SizedBox(
-    height: 12200,
-    child: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('cat').snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
-              return const Center(child: CircularProgressIndicator());
-            default:
-              return GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 2,
-                      mainAxisSpacing: 4,
-                      childAspectRatio:1.3
-                  ),
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot posts = snapshot.data!.docs[index];
-                    if (snapshot.data == null) {
-                      return const CircularProgressIndicator();
-                    }
-                    return InkWell(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                              borderRadius:BorderRadius.circular(10),
-                              color:ColorsManager.primary2
-                          ),
-                          child: Column(
-                            children: <Widget>[
-                              const SizedBox(height: 30,),
-                              Custom_Text(text: posts['name'],fontSize:17,alignment:Alignment.center,
-                                fontWeight:FontWeight.bold,
-                              ),
-                              const SizedBox(height: 20,),
-                              CustomButton(text:'حذف القسم', onPressed: (){
+Future<void> DeleteCatByName(String name) async {
+  final CollectionReference categories =
+  FirebaseFirestore.instance.collection('cat');
 
-                      DeleteCatInFireBase(posts: posts);
+  final query = await categories.where('name', isEqualTo: name).get();
 
-                              }, color1: ColorsManager.primary, color2: ColorsManager.primary2)
-
-
-                            ],
-                          ),
-                        ),
-                      ),
-                      onTap:(){
-                      },
-                    );
-                  });
-          }
-        }),
-  );
+  if (query.docs.isNotEmpty) {
+    for (var doc in query.docs) {
+      await doc.reference.delete();
+    }
+    appMessage(text: 'تم الحذف بنجاح');
+    Get.offAll(const AdminView());
+  } else {
+    appMessage(text: 'لم يتم العثور على القسم');
+  }
 }
 
 DeleteCatInFireBase ({required DocumentSnapshot posts})async{

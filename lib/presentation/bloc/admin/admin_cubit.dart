@@ -364,24 +364,24 @@ changeCatData2(String val){
             email: 'test@gmail.com', password:'123456');
 
  }
-  addCatToFireBase() async {
+  addCatToFireBase(List<String>images) async {
 
     adminLogin();
-     if(pickedImageXFiles==null){
-        appMessage(text: 'اختر الصورة');
-      }
-      uploadMultiImageToFirebaseStorage(pickedImageXFiles!).then((value) async {
+     // if(pickedImageXFiles==null){
+     //    appMessage(text: 'اختر الصورة');
+     //  }
+      //uploadMultiImageToFirebaseStorage(pickedImageXFiles!).then((value) async {
 
        print(downloadUrls.toString());
        print("////");
-        if(nameController.text.length>1 && nameArController.text.length>1
-    && downloadUrls.isNotEmpty
+        if(nameController.text.length>1 && nameArController.text.length>1&&images.isNotEmpty
     ){
 
+          //print("dd=="+downloadUrls[0]);
       await FirebaseFirestore.instance.collection('cat').add({
         'name': nameController.text,
         'nameAr':nameController.text,
-        'image': downloadUrls[0],
+        'image': images[0]
       }).then((value) {
         print('addddddddd');
         emit(AddNewCatSuccessState());
@@ -390,9 +390,7 @@ changeCatData2(String val){
       appMessage(text: 'تاكد من ادخال البيانات بشكل صحيح');
     }
     downloadUrls=[];
-
-
-      });
+    //  });
    
   }
 
