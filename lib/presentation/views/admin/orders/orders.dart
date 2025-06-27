@@ -11,2033 +11,530 @@ import 'package:shop_app/presentation/widgets/Custom_Text.dart';
 
 // ignore: must_be_immutable
 class OrdersView extends StatefulWidget {
+  final String status;
 
-
-  String status;
-
-  OrdersView({Key? key, required this.status}) : super(key: key);
+  const OrdersView({Key? key, required this.status}) : super(key: key);
 
   @override
   State<OrdersView> createState() => _OrdersViewState();
 }
 
 class _OrdersViewState extends State<OrdersView> {
-
   @override
   void initState() {
- 
-    print("ST==="+widget.status);
+    print("ST===${widget.status}");
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
-      appBar:AppBar(
-        leading:IconButton(
-          icon:const Icon(Icons.arrow_back_ios,
-            size: 26,
-          ),
-          onPressed:(){
-            Get.back();
-          },
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 26),
+          onPressed: () => Get.back(),
         ),
         elevation: 0,
         toolbarHeight: 55,
-        backgroundColor:ColorsManager.primary,
+        backgroundColor: ColorsManager.primary,
+        title: Text(
+          _getAppBarTitle(),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
       ),
-      body: ListView(
-        children: [
-          if(widget.status=='waiting')
-          OrdersWidget()
-          else if(widget.status=='del')
-DelOrdersWidget()
-          else if(widget.status=='approved')
-     ApprovedOrdersWidget()
-          else if(widget.status=='refuse')
-        CanceledOrdersWidget()
-        ],
+      body: Container(
+        color: ColorsManager.primary2,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: ListView(
+          children: [
+            const SizedBox(height: 16),
+            if (widget.status == 'waiting') OrdersWidget(),
+            if (widget.status == 'del') DelOrdersWidget(),
+            if (widget.status == 'approved') ApprovedOrdersWidget(),
+            if (widget.status == 'refuse') CanceledOrdersWidget(),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
+  }
 
-
+  String _getAppBarTitle() {
+    switch (widget.status) {
+      case 'waiting':
+        return 'Pending Orders';
+      case 'del':
+        return 'Delivered Orders';
+      case 'approved':
+        return 'Approved Orders';
+      case 'refuse':
+        return 'Canceled Orders';
+      default:
+        return 'Orders';
+    }
   }
 
   Widget OrdersWidget() {
-    // ignore: avoid_print
-    print("HERE");
-
-      return Container(
-        color: ColorsManager.primary2,
-        child: StreamBuilder(
-            stream:
-            FirebaseFirestore.instance.collection('orders')
-            .where('status',isEqualTo: 'waiting')
-                .orderBy('date', descending: true)
-                .snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              switch (snapshot.connectionState) {
-                case ConnectionState.waiting:
-                  return const Center(child: CircularProgressIndicator());
-                default:
-                  return ListView.builder(
-                    shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot posts = snapshot.data!.docs[index];
-                        String status='';
-                        if(posts['status']=='refuse'){
-                          status='ملغي';
-                        }
-                        else if(posts['status']=='confirm'){
-                          status='تم الموافقة علي الطلب';
-                        }
-                        else if (posts['status']=='waiting'){
-                          status='بانتظار الموافقة';
-                        }
-                        if (snapshot.data == null) {
-                          return const CircularProgressIndicator();
-                        }
-                        List order = posts['order'];
-                        return Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Card(
-                            color: Colors.grey[100],
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 20,),
-                                const Custom_Text(text: 'Order Id : ',
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 6,),
-                                Custom_Text(text: posts['order_id'],
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 3),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'البريد الالكتروني ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_email'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                    const SizedBox(height: 10,),
-                                    const Custom_Text(text: 'الاسم  ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_name'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'بيانات العنوان',
-                                      fontSize: 28,
-                                      alignment: Alignment.center,),
-                                    const Custom_Text(text: 'العنوان',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['address'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                               
-                                    const Custom_Text(text: 'الهاتف ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['phone'],
-                                        fontSize: 18,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const Divider(thickness: 0.7, color: Colors
-                                    .grey,),
-                                (posts['date'] != null) ?
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'تاريخ الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['date'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],),
-
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'توقيت الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['time'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],)
-                                  ],
-                                ) : const SizedBox(),
-                                const SizedBox(height: 10,),
-                                const Custom_Text(text: 'الطلب ',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                for(int i = 0; i < order.length; i++)
-                                  Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 110,
-                                            width: 80,
-                                            child: Image.network(order[i]['image']),
-                                          ),
-                                          SizedBox(
-                                            width:125,
-                                            child: Wrap(
-                                                children:[
-                                                  Center(
-                                                    child: Text(
-                                                        order[i]['name'].toString(),
-                                                        maxLines:2,
-                                                        style: GoogleFonts.tajawal(
-                                                          color:ColorsManager.primary,fontSize: 13,fontWeight: FontWeight.bold,
-                                                          textBaseline: TextBaseline.alphabetic,
-                                                        )
-                                                    ),
-                                                  ),
-                                                ]
-                                            ),
-                                          ),
-
-                                          const SizedBox(width: 10,),
-                                          Column(
-                                            children: [
-                                              const Custom_Text(text: 'السعر',
-                                                  fontSize: 14,
-                                                  alignment: Alignment.center),
-                                              Custom_Text(text: order[i]['price'].toString() + 'EGP',
-                                                  fontSize: 15,
-                                                  alignment: Alignment.center),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 10,),
-                                          Custom_Text(
-                                              text: " X " + order[i]['quant'],
-                                              fontSize: 15,
-                                              alignment: Alignment.center),
-                                        ],
-                                      ),
-                                      const Divider(
-                                        thickness: 0.7, color: Colors.grey,)
-                                    ],
-                                  ),
-
-                                const SizedBox(height: 10,),
-                                Custom_Text(text: "${"الاجمالي = " + posts['total'].toString()} "+'EGP',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-
-                                    const Custom_Text(
-                                        text: 'حالة الطلب ',
-                                        fontSize: 24,
-                                        alignment: Alignment.center),
-
-
-
-                                    Custom_Text(
-                                        text: status,
-                                        fontSize: 24,
-                                        color:Colors.pink,
-                                        alignment: Alignment.center),
-                                  ],
-                                ),
-                                const SizedBox(height: 11,),
-                                Row(
-                                  children:  [
-                                    const SizedBox(width: 10,),
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.blue,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'موافقة ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'approved');
-                                      },
-                                    ),
-                                    const SizedBox(width: 6,),
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.blue,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'تم التوصيل  ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'del');
-                                      },
-                                    ),
-                                    const SizedBox(width: 6,),
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.red,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'رفض ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'refuse');
-                                      },
-                                    ),
-
-                                  ],
-                                ),
-                                const SizedBox(height: 12,),
-
-                                (posts['status']!='waiting')?
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: InkWell(
-                                    child:  const Card(
-                                      color:Colors.red,
-                                      child:Padding(
-                                        padding: EdgeInsets.all(12.0),
-                                        child: Custom_Text(
-                                          text: 'حذف',
-                                          fontSize: 21,
-                                          alignment:Alignment.center,
-                                          color:ColorsManager.primary2,
-                                        ),
-                                      ),
-                                    ),
-                                    onTap:(){
-                                      DeleteDataInFireBase(posts: posts);
-                                    },
-                                  ),
-                                ):const SizedBox(),
-
-                                const SizedBox(height: 22,),
-
-
-                              ],
-                            ),),
-                        );
-                      });
-              }
-            }
-        ),
-      );
-    
+    return _buildOrderList(
+      status: 'waiting',
+      actionButtons: (posts) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            text: 'Approve',
+            color: Colors.green,
+            onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
+          ),
+          _buildActionButton(
+            text: 'Delivered',
+            color: Colors.blue,
+            onTap: () => EditOrderStatus(posts: posts, status: 'del'),
+          ),
+          _buildActionButton(
+            text: 'Reject',
+            color: Colors.red,
+            onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
+          ),
+        ],
+      ),
+    );
   }
 
-    Widget ApprovedOrdersWidget() {
-    // ignore: avoid_print
-    print("HERE");
-      return Container(
-        color: ColorsManager.primary2,
-        child: StreamBuilder(
-            stream:
-            FirebaseFirestore.instance.collection('orders')
-            .where('status',isEqualTo: 'approved')
-                .orderBy('date', descending: true)
-                .snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              switch (snapshot.connectionState) {
-                case ConnectionState.waiting:
-                  return const Center(child: CircularProgressIndicator());
-                default:
-                  return ListView.builder(
-                     shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot posts = snapshot.data!.docs[index];
-                        String status='';
-                        if(posts['status']=='refuse'){
-                          status='ملغي';
-                        }
-                        else if(posts['status']=='approved'){
-                          status='تم الموافقة علي الطلب';
-                        }
-                        else if (posts['status']=='waiting'){
-                          status='بانتظار الموافقة';
-                        }
-                        if (snapshot.data == null) {
-                          return const CircularProgressIndicator();
-                        }
-                        List order = posts['order'];
-                        return Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Card(
-                            color: Colors.grey[100],
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 20,),
-                                const Custom_Text(text: 'Order Id : ',
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 6,),
-                                Custom_Text(text: posts['order_id'],
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 3),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'البريد الالكتروني ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_email'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                    const SizedBox(height: 10,),
-                                    const Custom_Text(text: 'الاسم  ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_name'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'بيانات العنوان',
-                                      fontSize: 28,
-                                      alignment: Alignment.center,),
-                                    const Custom_Text(text: 'العنوان',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['address'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                               
-                                    const Custom_Text(text: 'الهاتف ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['phone'],
-                                        fontSize: 18,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const Divider(thickness: 0.7, color: Colors
-                                    .grey,),
-                                (posts['date'] != null) ?
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'تاريخ الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['date'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],),
-
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'توقيت الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['time'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],)
-                                  ],
-                                ) : const SizedBox(),
-                                const SizedBox(height: 10,),
-                                const Custom_Text(text: 'الطلب ',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                for(int i = 0; i < order.length; i++)
-                                  Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 110,
-                                            width: 80,
-                                            child: Image.network(order[i]['image']),
-                                          ),
-                                          SizedBox(
-                                            width:125,
-                                            child: Wrap(
-                                                children:[
-                                                  Center(
-                                                    child: Text(
-                                                        order[i]['name'].toString(),
-                                                        maxLines:2,
-                                                        style: GoogleFonts.tajawal(
-                                                          color:ColorsManager.primary,fontSize: 13,fontWeight: FontWeight.bold,
-                                                          textBaseline: TextBaseline.alphabetic,
-                                                        )
-                                                    ),
-                                                  ),
-                                                ]
-                                            ),
-                                          ),
-
-                                          const SizedBox(width: 10,),
-                                          Column(
-                                            children: [
-                                              const Custom_Text(text: 'السعر',
-                                                  fontSize: 14,
-                                                  alignment: Alignment.center),
-                                              Custom_Text(text: order[i]['price'].toString() + 'EGP',
-                                                  fontSize: 15,
-                                                  alignment: Alignment.center),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 10,),
-                                          Custom_Text(
-                                              text: " X " + order[i]['quant'],
-                                              fontSize: 15,
-                                              alignment: Alignment.center),
-                                        ],
-                                      ),
-                                      const Divider(
-                                        thickness: 0.7, color: Colors.grey,)
-                                    ],
-                                  ),
-
-                                const SizedBox(height: 10,),
-                                Custom_Text(text: "${"الاجمالي = " + posts['total'].toString()} "+'EGP',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-
-                                    const Custom_Text(
-                                        text: 'حالة الطلب ',
-                                        fontSize: 24,
-                                        alignment: Alignment.center),
-
-
-
-                                    Custom_Text(
-                                        text: status,
-                                        fontSize: 24,
-                                        color:Colors.pink,
-                                        alignment: Alignment.center),
-                                  ],
-                                ),
-                                const SizedBox(height: 11,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children:  [
-                     
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.blue,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'تم التوصيل  ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'del');
-                                      },
-                                    ),
-                                    const SizedBox(width: 6,),
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.red,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'رفض ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'refuse');
-                                      },
-                                    ),
-
-                                  ],
-                                ),
-                                // const SizedBox(height: 12,),
-
-                                // (posts['status']!='waiting')?
-                                // Padding(
-                                //   padding: const EdgeInsets.all(8.0),
-                                //   child: InkWell(
-                                //     child:  const Card(
-                                //       color:Colors.red,
-                                //       child:Padding(
-                                //         padding: EdgeInsets.all(12.0),
-                                //         child: Custom_Text(
-                                //           text: 'حذف',
-                                //           fontSize: 21,
-                                //           alignment:Alignment.center,
-                                //           color:ColorsManager.primary2,
-                                //         ),
-                                //       ),
-                                //     ),
-                                //     onTap:(){
-                                //       DeleteDataInFireBase(posts: posts);
-                                //     },
-                                //   ),
-                                // ):const SizedBox(),
-
-                                const SizedBox(height: 22,),
-
-
-                              ],
-                            ),),
-                        );
-                      });
-              }
-            }
-        ),
-      );
-    
+  Widget ApprovedOrdersWidget() {
+    return _buildOrderList(
+      status: 'approved',
+      actionButtons: (posts) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            text: 'Mark as Delivered',
+            color: Colors.blue,
+            onTap: () => EditOrderStatus(posts: posts, status: 'del'),
+          ),
+          _buildActionButton(
+            text: 'Reject',
+            color: Colors.red,
+            onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
+          ),
+        ],
+      ),
+    );
   }
 
-
- Widget CanceledOrdersWidget() {
-    // ignore: avoid_print
-    print("HERE");
-      return Container(
-        color: ColorsManager.primary2,
-        child: StreamBuilder(
-            stream:
-            FirebaseFirestore.instance.collection('orders')
-            .where('status',isEqualTo: 'refuse')
-                .orderBy('date', descending: true)
-                .snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              switch (snapshot.connectionState) {
-                case ConnectionState.waiting:
-                  return const Center(child: CircularProgressIndicator());
-                default:
-                  return ListView.builder(
-                     shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot posts = snapshot.data!.docs[index];
-                        String status='';
-                        if(posts['status']=='refuse'){
-                          status='ملغي';
-                        }
-                        else if(posts['status']=='approved'){
-                          status='تم الموافقة علي الطلب';
-                        }
-                        else if (posts['status']=='waiting'){
-                          status='بانتظار الموافقة';
-                        }
-                        if (snapshot.data == null) {
-                          return const CircularProgressIndicator();
-                        }
-                        List order = posts['order'];
-                        return Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Card(
-                            color: Colors.grey[100],
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 20,),
-                                const Custom_Text(text: 'Order Id : ',
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 6,),
-                                Custom_Text(text: posts['order_id'],
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 3),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'البريد الالكتروني ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_email'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                    const SizedBox(height: 10,),
-                                    const Custom_Text(text: 'الاسم  ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_name'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'بيانات العنوان',
-                                      fontSize: 28,
-                                      alignment: Alignment.center,),
-                                    const Custom_Text(text: 'العنوان',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['address'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                               
-                                    const Custom_Text(text: 'الهاتف ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['phone'],
-                                        fontSize: 18,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const Divider(thickness: 0.7, color: Colors
-                                    .grey,),
-                                (posts['date'] != null) ?
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'تاريخ الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['date'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],),
-
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'توقيت الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['time'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],)
-                                  ],
-                                ) : const SizedBox(),
-                                const SizedBox(height: 10,),
-                                const Custom_Text(text: 'الطلب ',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                for(int i = 0; i < order.length; i++)
-                                  Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 110,
-                                            width: 80,
-                                            child: Image.network(order[i]['image']),
-                                          ),
-                                          SizedBox(
-                                            width:125,
-                                            child: Wrap(
-                                                children:[
-                                                  Center(
-                                                    child: Text(
-                                                        order[i]['name'].toString(),
-                                                        maxLines:2,
-                                                        style: GoogleFonts.tajawal(
-                                                          color:ColorsManager.primary,fontSize: 13,fontWeight: FontWeight.bold,
-                                                          textBaseline: TextBaseline.alphabetic,
-                                                        )
-                                                    ),
-                                                  ),
-                                                ]
-                                            ),
-                                          ),
-
-                                          const SizedBox(width: 10,),
-                                          Column(
-                                            children: [
-                                              const Custom_Text(text: 'السعر',
-                                                  fontSize: 14,
-                                                  alignment: Alignment.center),
-                                              Custom_Text(text: order[i]['price'].toString() + 'EGP',
-                                                  fontSize: 15,
-                                                  alignment: Alignment.center),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 10,),
-                                          Custom_Text(
-                                              text: " X " + order[i]['quant'],
-                                              fontSize: 15,
-                                              alignment: Alignment.center),
-                                        ],
-                                      ),
-                                      const Divider(
-                                        thickness: 0.7, color: Colors.grey,)
-                                    ],
-                                  ),
-
-                                const SizedBox(height: 10,),
-                                Custom_Text(text: "${"الاجمالي = " + posts['total'].toString()} "+'EGP',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-
-                                    const Custom_Text(
-                                        text: 'حالة الطلب ',
-                                        fontSize: 24,
-                                        alignment: Alignment.center),
-
-
-
-                                    Custom_Text(
-                                        text: status,
-                                        fontSize: 24,
-                                        color:Colors.pink,
-                                        alignment: Alignment.center),
-                                  ],
-                                ),
-                                const SizedBox(height: 11,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children:  [
-                     
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.blue,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'موافقة  ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'del');
-                                      },
-                                    ),
-                                  
-                                  ],
-                                ),
-                                // const SizedBox(height: 12,),
-
-                              
-
-                                const SizedBox(height: 22,),
-
-
-                              ],
-                            ),),
-                        );
-                      });
-              }
-            }
-        ),
-      );
-    
-  }
-
-     Widget DelOrdersWidget() {
-    // ignore: avoid_print
-    print("HERE");
-      return Container(
-        color: ColorsManager.primary2,
-        child: StreamBuilder(
-            stream:
-            FirebaseFirestore.instance.collection('orders')
-            .where('status',isEqualTo: 'del')
-                .orderBy('date', descending: true)
-                .snapshots(),
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              switch (snapshot.connectionState) {
-                case ConnectionState.waiting:
-                  return const Center(child: CircularProgressIndicator());
-                default:
-                  return ListView.builder(
-                     shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot posts = snapshot.data!.docs[index];
-                        String status='';
-                        if(posts['status']=='refuse'){
-                          status='ملغي';
-                        }
-                        else if(posts['status']=='approved'){
-                          status='تم الموافقة علي الطلب';
-                        }
-                         else if(posts['status']=='del'){
-                          status='تم التوصيل ';
-                        }
-                        else if (posts['status']=='waiting'){
-                          status='بانتظار الموافقة';
-                        }
-                        if (snapshot.data == null) {
-                          return const CircularProgressIndicator();
-                        }
-                        List order = posts['order'];
-                        return Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Card(
-                            color: Colors.grey[100],
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 20,),
-                                const Custom_Text(text: 'Order Id : ',
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 6,),
-                                Custom_Text(text: posts['order_id'],
-                                  fontSize: 18,color: Colors.black,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 3),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'البريد الالكتروني ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_email'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                    const SizedBox(height: 10,),
-                                    const Custom_Text(text: 'الاسم  ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['user_name'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-                                    const Custom_Text(text: 'بيانات العنوان',
-                                      fontSize: 28,
-                                      alignment: Alignment.center,),
-                                    const Custom_Text(text: 'العنوان',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['address'],
-                                        fontSize: 16,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                               
-                                    const Custom_Text(text: 'الهاتف ',
-                                      fontSize: 18,
-                                      alignment: Alignment.center,),
-                                    Custom_Text(text: posts['phone'],
-                                        fontSize: 18,
-                                        alignment: Alignment.center,
-                                        color: Colors.grey),
-                                  ],
-                                ),
-                                const Divider(thickness: 0.7, color: Colors
-                                    .grey,),
-                                (posts['date'] != null) ?
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'تاريخ الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['date'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],),
-
-                                    const SizedBox(height: 10,),
-                                    Row(children: [
-                                      const SizedBox(width: 11,),
-                                      const Custom_Text(text: 'توقيت الطلب',
-                                        fontSize: 16,
-                                        color: ColorsManager.primary,),
-                                      const SizedBox(width: 11,),
-                                      Custom_Text(text: posts['time'],
-                                        fontSize: 16,
-                                        color: Colors.grey,)
-                                    ],)
-                                  ],
-                                ) : const SizedBox(),
-                                const SizedBox(height: 10,),
-                                const Custom_Text(text: 'الطلب ',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                for(int i = 0; i < order.length; i++)
-                                  Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          SizedBox(
-                                            height: 110,
-                                            width: 80,
-                                            child: Image.network(order[i]['image']),
-                                          ),
-                                          SizedBox(
-                                            width:125,
-                                            child: Wrap(
-                                                children:[
-                                                  Center(
-                                                    child: Text(
-                                                        order[i]['name'].toString(),
-                                                        maxLines:2,
-                                                        style: GoogleFonts.tajawal(
-                                                          color:ColorsManager.primary,fontSize: 13,fontWeight: FontWeight.bold,
-                                                          textBaseline: TextBaseline.alphabetic,
-                                                        )
-                                                    ),
-                                                  ),
-                                                ]
-                                            ),
-                                          ),
-
-                                          const SizedBox(width: 10,),
-                                          Column(
-                                            children: [
-                                              const Custom_Text(text: 'السعر',
-                                                  fontSize: 14,
-                                                  alignment: Alignment.center),
-                                              Custom_Text(text: order[i]['price'].toString() + 'EGP',
-                                                  fontSize: 15,
-                                                  alignment: Alignment.center),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 10,),
-                                          Custom_Text(
-                                              text: " X " + order[i]['quant'],
-                                              fontSize: 15,
-                                              alignment: Alignment.center),
-                                        ],
-                                      ),
-                                      const Divider(
-                                        thickness: 0.7, color: Colors.grey,)
-                                    ],
-                                  ),
-
-                                const SizedBox(height: 10,),
-                                Custom_Text(text: "${"الاجمالي = " + posts['total'].toString()} "+'EGP',
-                                  fontSize: 28,
-                                  alignment: Alignment.center,),
-                                const SizedBox(height: 10,),
-                                Column(
-                                  children: [
-
-                                    const Custom_Text(
-                                        text: 'حالة الطلب ',
-                                        fontSize: 24,
-                                        alignment: Alignment.center),
-
-
-
-                                    Custom_Text(
-                                        text: status,
-                                        fontSize: 24,
-                                        color:Colors.pink,
-                                        alignment: Alignment.center),
-                                  ],
-                                ),
-                                const SizedBox(height: 11,),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children:  [
-                     
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.blue,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'موافقة  ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'approved');
-                                      },
-                                    ),
-                                    const SizedBox(width: 6,),
-                                    InkWell(
-                                      child:  const Card(
-                                        color:Colors.red,
-                                        child:Padding(
-                                          padding: EdgeInsets.all(6.0),
-                                          child: Custom_Text(
-                                            text: 'رفض ',
-                                            fontSize: 18,
-                                            alignment:Alignment.center,
-                                            color:ColorsManager.primary2,
-                                          ),
-                                        ),
-                                      ),
-                                      onTap:(){
-                                        EditOrderStatus(posts: posts, status: 'refuse');
-                                      },
-                                    ),
-
-                                  ],
-                                ),
-                                // const SizedBox(height: 12,),
-
-                                // (posts['status']!='waiting')?
-                                // Padding(
-                                //   padding: const EdgeInsets.all(8.0),
-                                //   child: InkWell(
-                                //     child:  const Card(
-                                //       color:Colors.red,
-                                //       child:Padding(
-                                //         padding: EdgeInsets.all(12.0),
-                                //         child: Custom_Text(
-                                //           text: 'حذف',
-                                //           fontSize: 21,
-                                //           alignment:Alignment.center,
-                                //           color:ColorsManager.primary2,
-                                //         ),
-                                //       ),
-                                //     ),
-                                //     onTap:(){
-                                //       DeleteDataInFireBase(posts: posts);
-                                //     },
-                                //   ),
-                                // ):const SizedBox(),
-
-                                const SizedBox(height: 22,),
-
-
-                              ],
-                            ),),
-                        );
-                      });
-              }
-            }
-        ),
-      );
-    
-  }
-
-
-
- 
-  // Widget DelordersWidget(){
-  //   return Container(
-  //     height: 7961100,
-  //     color: ColorsManager.primary2,
-  //     child: StreamBuilder(
-  //         stream:
-  //         FirebaseFirestore.instance.collection('orders')
-  //             .where('status',isEqualTo: 'del')
-  //             .orderBy('date', descending: true)
-  //             .snapshots(),
-  //         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-  //           if (!snapshot.hasData) {
-  //             return const Center(child: CircularProgressIndicator());
-  //           }
-  //           switch (snapshot.connectionState) {
-  //             case ConnectionState.waiting:
-  //               return const Center(child: CircularProgressIndicator());
-  //             default:
-  //               return ListView.builder(
-  //                   physics: const NeverScrollableScrollPhysics(),
-  //                   itemCount: snapshot.data!.docs.length,
-  //                   itemBuilder: (context, index) {
-  //                     DocumentSnapshot posts = snapshot.data!.docs[index];
-  //                     String status='';
-  //                     if(posts['status']=='refuse'){
-  //                       status='ملغي';
-  //                     }
-  //                     else if(posts['status']=='sent'){
-  //                       status='تم الارسال ';
-  //                     }
-  //                     else if(posts['status']=='del'){
-  //                       status='تم التسليم ';
-  //                     }
-  //                     else if(posts['status']=='confirm'){
-  //                       status='تم الموافقة علي الطلب';
-  //                     }
-  //                     else if (posts['status']=='waiting'){
-  //                       status='بانتظار الموافقة';
-  //                     }
-  //                     if (snapshot.data == null) {
-  //                       return const CircularProgressIndicator();
-  //                     }
-  //                     List order = posts['order'];
-  //                     return Padding(
-  //                       padding: const EdgeInsets.all(15.0),
-  //                       child: Card(
-  //                         color: Colors.grey[100],
-  //                         child: Column(
-  //                           children: [
-  //                             const SizedBox(height: 20,),
-  //                             const Custom_Text(text: 'Order Id : ',
-  //                               fontSize: 18,color: Colors.black,
-  //                               alignment: Alignment.center,),
-  //                             const SizedBox(height: 6,),
-  //                             Custom_Text(text: posts['order_id'],
-  //                               fontSize: 18,color: Colors.black,
-  //                               alignment: Alignment.center,),
-  //                             const SizedBox(height: 3),
-  //                             const SizedBox(height: 10,),
-  //                             Column(
-  //                               children: [
-  //                                 const Custom_Text(text: 'البريد الالكتروني ',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['user_email'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                                 const SizedBox(height: 10,),
-  //                                 const Custom_Text(text: 'الاسم  ',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['user_name'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                               ],
-  //                             ),
-  //                             const SizedBox(height: 10,),
-  //                             Column(
-  //                               children: [
-  //                                 const Custom_Text(text: 'بيانات العنوان',
-  //                                   fontSize: 28,
-  //                                   alignment: Alignment.center,),
-  //                                 const Custom_Text(text: 'العنوان',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['address'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                                 const SizedBox(height: 5,),
-  //                                 const Custom_Text(text: 'نوع التوصيل',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['home'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                                 const Custom_Text(text: 'الهاتف ',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['phone'],
-  //                                     fontSize: 18,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                               ],
-  //                             ),
-  //                             const Divider(thickness: 0.7, color: Colors
-  //                                 .grey,),
-  //                             (posts['date'] != null) ?
-  //                             Column(
-  //                               children: [
-  //                                 const SizedBox(height: 10,),
-  //                                 Row(children: [
-  //                                   const SizedBox(width: 11,),
-  //                                   const Custom_Text(text: 'تاريخ الطلب',
-  //                                     fontSize: 16,
-  //                                     color: ColorsManager.primary,),
-  //                                   const SizedBox(width: 11,),
-  //                                   Custom_Text(text: posts['date'],
-  //                                     fontSize: 16,
-  //                                     color: Colors.grey,)
-  //                                 ],),
-
-  //                                 const SizedBox(height: 10,),
-  //                                 Row(children: [
-  //                                   const SizedBox(width: 11,),
-  //                                   const Custom_Text(text: 'توقيت الطلب',
-  //                                     fontSize: 16,
-  //                                     color: ColorsManager.primary,),
-  //                                   const SizedBox(width: 11,),
-  //                                   Custom_Text(text: posts['time'],
-  //                                     fontSize: 16,
-  //                                     color: Colors.grey,)
-  //                                 ],)
-  //                               ],
-  //                             ) : const SizedBox(),
-  //                             const SizedBox(height: 10,),
-  //                             const Custom_Text(text: 'الطلب ',
-  //                               fontSize: 28,
-  //                               alignment: Alignment.center,),
-  //                             for(int i = 0; i < order.length; i++)
-  //                               Column(
-  //                                 children: [
-  //                                   Row(
-  //                                     children: [
-  //                                       SizedBox(
-  //                                         height: 100,
-  //                                         width: 80,
-  //                                         child: Image.network(order[i]['image']),
-  //                                       ),
-  //                                       SizedBox(
-  //                                         width:125,
-  //                                         child: Wrap(
-  //                                             children:[
-  //                                               Center(
-  //                                                 child: Text(
-  //                                                     order[i]['name'].toString(),
-  //                                                     maxLines:2,
-  //                                                     style: GoogleFonts.tajawal(
-  //                                                       color:ColorsManager.primary,
-  //                                                       fontSize: 14,fontWeight: FontWeight.bold,
-  //                                                       textBaseline: TextBaseline.alphabetic,
-  //                                                     )
-  //                                                 ),
-  //                                               ),
-  //                                             ]
-  //                                         ),
-  //                                       ),
-
-  //                                       const SizedBox(width: 6,),
-  //                                       Column(
-  //                                         children: [
-  //                                           const Custom_Text(text: 'السعر',
-  //                                               fontSize: 15,
-  //                                               alignment: Alignment.center),
-  //                                           Custom_Text(text: order[i]['price'],
-  //                                               fontSize: 16,
-  //                                               alignment: Alignment.center),
-  //                                         ],
-  //                                       ),
-  //                                       const SizedBox(width: 7,),
-  //                                       Custom_Text(
-  //                                           text: " X " + order[i]['quant'],
-  //                                           fontSize: 15,
-  //                                           alignment: Alignment.center),
-  //                                     ],
-  //                                   ),
-  //                                   const Divider(
-  //                                     thickness: 0.7, color: Colors.grey,)
-  //                                 ],
-  //                               ),
-
-  //                             const SizedBox(height: 10,),
-  //                             Custom_Text(text: "${"الاجمالي = " + posts['total']} "+posts['currency'],
-  //                               fontSize: 28,
-  //                               alignment: Alignment.center,),
-  //                             const SizedBox(height: 10,),
-  //                             Column(
-  //                               children: [
-
-  //                                 const Custom_Text(
-  //                                     text: 'حالة الطلب ',
-  //                                     fontSize: 24,
-  //                                     alignment: Alignment.center),
-
-
-
-  //                                 Custom_Text(
-  //                                     text: status,
-  //                                     fontSize: 24,
-  //                                     color:Colors.pink,
-  //                                     alignment: Alignment.center),
-  //                               ],
-  //                             ),
-  //                             const SizedBox(height: 11,),
-
-  //                             (posts['status']!='waiting')?
-  //                             Padding(
-  //                               padding: const EdgeInsets.all(8.0),
-  //                               child: InkWell(
-  //                                 child:  const Card(
-  //                                   color:Colors.red,
-  //                                   child:Padding(
-  //                                     padding: EdgeInsets.all(12.0),
-  //                                     child: Custom_Text(
-  //                                       text: 'حذف',
-  //                                       fontSize: 21,
-  //                                       alignment:Alignment.center,
-  //                                       color:ColorsManager.primary2,
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                                 onTap:(){
-  //                                   DeleteDataInFireBase(posts: posts);
-  //                                 },
-  //                               ),
-  //                             ):const SizedBox(),
-
-  //                             const SizedBox(height: 22,),
-
-
-  //                           ],
-  //                         ),),
-  //                     );
-  //                   });
-  //           }
-  //         }
-  //     ),
-  //   );
-
-  // }
-
-  // Widget OrdersApprovedWidget(){
-  //     return Container(
-  //       color: ColorsManager.primary2,
-  //       child: StreamBuilder(
-  //           stream:
-  //           FirebaseFirestore.instance.collection('orders')
-  //           .where('status',isEqualTo: 'approved')
-  //               .orderBy('date', descending: true)
-  //               .snapshots(),
-  //           builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-  //             if (!snapshot.hasData) {
-  //               return const Center(child: CircularProgressIndicator());
-  //             }
-  //             switch (snapshot.connectionState) {
-  //               case ConnectionState.waiting:
-  //                 return const Center(child: CircularProgressIndicator());
-  //               default:
-  //                 return ListView.builder(
-  //                   shrinkWrap: true,
-  //                     physics: const NeverScrollableScrollPhysics(),
-  //                     itemCount: snapshot.data!.docs.length,
-  //                     itemBuilder: (context, index) {
-  //                       DocumentSnapshot posts = snapshot.data!.docs[index];
-  //                       String status='';
-  //                       if(posts['status']=='refuse'){
-  //                         status='ملغي';
-  //                       }
-  //                       else if(posts['status']=='sent'){
-  //                         status='تم الارسال ';
-  //                       }
-  //                       else if(posts['status']=='del'){
-  //                         status='تم التسليم ';
-  //                       }
-  //                       else if(posts['status']=='confirm'){
-  //                         status='تم الموافقة علي الطلب';
-  //                       }
-  //                       else if (posts['status']=='waiting'){
-  //                         status='بانتظار الموافقة';
-  //                       }
-  //                       if (snapshot.data == null) {
-  //                         return const CircularProgressIndicator();
-  //                       }
-  //                       List order = posts['order'];
-  //                       return Padding(
-  //                         padding: const EdgeInsets.all(15.0),
-  //                         child: Card(
-  //                           color: Colors.grey[100],
-  //                           child: Column(
-  //                             children: [
-  //                               const SizedBox(height: 20,),
-  //                               const Custom_Text(text: 'Order Id : ',
-  //                                 fontSize: 18,color: Colors.black,
-  //                                 alignment: Alignment.center,),
-  //                               const SizedBox(height: 6,),
-  //                               Custom_Text(text: posts['order_id'],
-  //                                 fontSize: 18,color: Colors.black,
-  //                                 alignment: Alignment.center,),
-  //                               const SizedBox(height: 3),
-  //                               const SizedBox(height: 10,),
-  //                               Column(
-  //                                 children: [
-  //                                   const Custom_Text(text: 'البريد الالكتروني ',
-  //                                     fontSize: 18,
-  //                                     alignment: Alignment.center,),
-  //                                   Custom_Text(text: posts['user_email'],
-  //                                       fontSize: 16,
-  //                                       alignment: Alignment.center,
-  //                                       color: Colors.grey),
-  //                                   const SizedBox(height: 10,),
-  //                                   const Custom_Text(text: 'الاسم  ',
-  //                                     fontSize: 18,
-  //                                     alignment: Alignment.center,),
-  //                                   Custom_Text(text: posts['user_name'],
-  //                                       fontSize: 16,
-  //                                       alignment: Alignment.center,
-  //                                       color: Colors.grey),
-  //                                 ],
-  //                               ),
-  //                               const SizedBox(height: 10,),
-  //                               Column(
-  //                                 children: [
-  //                                   const Custom_Text(text: 'بيانات العنوان',
-  //                                     fontSize: 28,
-  //                                     alignment: Alignment.center,),
-  //                                   const Custom_Text(text: 'العنوان',
-  //                                     fontSize: 18,
-  //                                     alignment: Alignment.center,),
-  //                                   Custom_Text(text: posts['address'],
-  //                                       fontSize: 16,
-  //                                       alignment: Alignment.center,
-  //                                       color: Colors.grey),
-  //                                  const SizedBox(height: 5,),
-  //                                   const Custom_Text(text: 'الهاتف ',
-  //                                     fontSize: 18,
-  //                                     alignment: Alignment.center,),
-  //                                   Custom_Text(text: posts['phone'],
-  //                                       fontSize: 18,
-  //                                       alignment: Alignment.center,
-  //                                       color: Colors.grey),
-  //                                 ],
-  //                               ),
-  //                               const Divider(thickness: 0.7, color: Colors
-  //                                   .grey,),
-  //                               (posts['date'] != null) ?
-  //                               Column(
-  //                                 children: [
-  //                                   const SizedBox(height: 10,),
-  //                                   Row(children: [
-  //                                     const SizedBox(width: 11,),
-  //                                     const Custom_Text(text: 'تاريخ الطلب',
-  //                                       fontSize: 16,
-  //                                       color: ColorsManager.primary,),
-  //                                     const SizedBox(width: 11,),
-  //                                     Custom_Text(text: posts['date'],
-  //                                       fontSize: 16,
-  //                                       color: Colors.grey,)
-  //                                   ],),
-
-  //                                   const SizedBox(height: 10,),
-  //                                   Row(children: [
-  //                                     const SizedBox(width: 11,),
-  //                                     const Custom_Text(text: 'توقيت الطلب',
-  //                                       fontSize: 16,
-  //                                       color: ColorsManager.primary,),
-  //                                     const SizedBox(width: 11,),
-  //                                     Custom_Text(text: posts['time'],
-  //                                       fontSize: 16,
-  //                                       color: Colors.grey,)
-  //                                   ],)
-  //                                 ],
-  //                               ) : const SizedBox(),
-  //                               const SizedBox(height: 10,),
-  //                               const Custom_Text(text: 'الطلب ',
-  //                                 fontSize: 28,
-  //                                 alignment: Alignment.center,),
-  //                               for(int i = 0; i < order.length; i++)
-  //                                 Column(
-  //                                   children: [
-  //                                     Row(
-  //                                       children: [
-  //                                         const SizedBox(width: 5,),
-  //                                         SizedBox(
-  //                                           width:150,
-  //                                           child: Wrap(
-  //                                               children:[
-  //                                                 Center(
-  //                                                   child: Text(
-  //                                                       order[i]['name'].toString(),
-  //                                                       maxLines:2,
-  //                                                       style: GoogleFonts.tajawal(
-  //                                                         color:ColorsManager.primary,fontSize: 15,fontWeight: FontWeight.bold,
-  //                                                         textBaseline: TextBaseline.alphabetic,
-  //                                                       )
-  //                                                   ),
-  //                                                 ),
-  //                                               ]
-  //                                           ),
-  //                                         ),
-
-  //                                         const SizedBox(width: 10,),
-  //                                         Column(
-  //                                           children: [
-  //                                             const Custom_Text(text: 'السعر',
-  //                                                 fontSize: 17,
-  //                                                 alignment: Alignment.center),
-  //                                             Custom_Text(text: order[i]['price'],
-  //                                                 fontSize: 16,
-  //                                                 alignment: Alignment.center),
-  //                                           ],
-  //                                         ),
-  //                                         const SizedBox(width: 10,),
-  //                                         Custom_Text(
-  //                                             text: " X " + order[i]['quant'],
-  //                                             fontSize: 16,
-  //                                             alignment: Alignment.center),
-  //                                       ],
-  //                                     ),
-  //                                     const Divider(
-  //                                       thickness: 0.7, color: Colors.grey,)
-  //                                   ],
-  //                                 ),
-
-  //                               const SizedBox(height: 10,),
-  //                               Custom_Text(text: "${"الاجمالي = " + posts['total'].toString()} "+posts['currency'],
-  //                                 fontSize: 28,
-  //                                 alignment: Alignment.center,),
-  //                               const SizedBox(height: 10,),
-  //                               Column(
-  //                                 children: [
-
-  //                                   const Custom_Text(
-  //                                       text: 'حالة الطلب ',
-  //                                       fontSize: 24,
-  //                                       alignment: Alignment.center),
-
-
-
-  //                                   Custom_Text(
-  //                                       text: status,
-  //                                       fontSize: 24,
-  //                                       color:Colors.pink,
-  //                                       alignment: Alignment.center),
-  //                                 ],
-  //                               ),
-  //                               const SizedBox(height: 11,),
-  //                               Row(
-  //                                 children:  [
-  //                                 //xxx
-  //                                   const SizedBox(width: 33,),
-  //                                   InkWell(
-  //                                     child:  const Card(
-  //                                       color:Colors.blue,
-  //                                       child:Padding(
-  //                                         padding: EdgeInsets.all(2.0),
-  //                                         child: Custom_Text(
-  //                                           text: 'تم التوصيل  ',
-  //                                           fontSize: 21,
-  //                                           alignment:Alignment.center,
-  //                                           color:ColorsManager.primary2,
-  //                                         ),
-  //                                       ),
-  //                                     ),
-  //                                     onTap:(){
-  //                                       EditOrderStatus(posts: posts, status: 'del');
-  //                                     },
-  //                                   ),
-  //                                   const SizedBox(width: 6,),
-  //                                   InkWell(
-  //                                     child:  const Card(
-  //                                       color:Colors.red,
-  //                                       child:Padding(
-  //                                         padding: EdgeInsets.all(12.0),
-  //                                         child: Custom_Text(
-  //                                           text: 'رفض ',
-  //                                           fontSize: 21,
-  //                                           alignment:Alignment.center,
-  //                                           color:ColorsManager.primary2,
-  //                                         ),
-  //                                       ),
-  //                                     ),
-  //                                     onTap:(){
-  //                                       EditOrderStatus(posts: posts, status: 'refuse');
-  //                                     },
-  //                                   ),
-  //                                 ],
-  //                               ),
-  //                               const SizedBox(height: 12,),
-
-  //                               (posts['status']!='waiting')?
-  //                               Padding(
-  //                                 padding: const EdgeInsets.all(8.0),
-  //                                 child: InkWell(
-  //                                   child:  const Card(
-  //                                     color:Colors.red,
-  //                                     child:Padding(
-  //                                       padding: EdgeInsets.all(12.0),
-  //                                       child: Custom_Text(
-  //                                         text: 'حذف',
-  //                                         fontSize: 21,
-  //                                         alignment:Alignment.center,
-  //                                         color:ColorsManager.primary2,
-  //                                       ),
-  //                                     ),
-  //                                   ),
-  //                                   onTap:(){
-  //                                     DeleteDataInFireBase(posts: posts);
-  //                                   },
-  //                                 ),
-  //                               ):const SizedBox(),
-
-  //                               const SizedBox(height: 22,),
-
-
-  //                             ],
-  //                           ),),
-  //                       );
-  //                     });
-  //             }
-  //           }
-  //       ),
-  //     );
-
-  // }
-
-  // Widget OrdersCanceledWidget() {
-  //   return Container(
-  //     height: 7961100,
-  //     color: ColorsManager.primary2,
-  //     child: StreamBuilder(
-  //         stream:
-  //         FirebaseFirestore.instance.collection('orders')
-  //             .where('status',isEqualTo: 'refuse')
-  //             .orderBy('date', descending: true)
-  //             .snapshots(),
-  //         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-  //           if (!snapshot.hasData) {
-  //             return const Center(child: CircularProgressIndicator());
-  //           }
-  //           switch (snapshot.connectionState) {
-  //             case ConnectionState.waiting:
-  //               return const Center(child: CircularProgressIndicator());
-  //             default:
-  //               return ListView.builder(
-  //                   physics: const NeverScrollableScrollPhysics(),
-  //                   itemCount: snapshot.data!.docs.length,
-  //                   itemBuilder: (context, index) {
-  //                     DocumentSnapshot posts = snapshot.data!.docs[index];
-  //                     String status='';
-  //                     if(posts['status']=='refuse'){
-  //                       status='ملغي';
-  //                     }
-  //                     else if(posts['status']=='confirm'){
-  //                       status='تم الموافقة علي الطلب';
-  //                     }
-  //                     else if (posts['status']=='waiting'){
-  //                       status='بانتظار الموافقة';
-  //                     }
-  //                     if (snapshot.data == null) {
-  //                       return const CircularProgressIndicator();
-  //                     }
-  //                     List order = posts['order'];
-  //                     return Padding(
-  //                       padding: const EdgeInsets.all(15.0),
-  //                       child: Card(
-  //                         color: Colors.grey[100],
-  //                         child: Column(
-  //                           children: [
-  //                             const SizedBox(height: 20,),
-  //                             const Custom_Text(text: 'Order Id : ',
-  //                               fontSize: 18,color: Colors.black,
-  //                               alignment: Alignment.center,),
-  //                             const SizedBox(height: 6,),
-  //                             Custom_Text(text: posts['order_id'],
-  //                               fontSize: 18,color: Colors.black,
-  //                               alignment: Alignment.center,),
-  //                             const SizedBox(height: 3),
-  //                             const SizedBox(height: 10,),
-  //                             Column(
-  //                               children: [
-  //                                 const Custom_Text(text: 'البريد الالكتروني ',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['user_email'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                                 const SizedBox(height: 10,),
-  //                                 const Custom_Text(text: 'الاسم  ',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['user_name'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                               ],
-  //                             ),
-  //                             const SizedBox(height: 10,),
-  //                             Column(
-  //                               children: [
-  //                                 const Custom_Text(text: 'بيانات العنوان',
-  //                                   fontSize: 28,
-  //                                   alignment: Alignment.center,),
-  //                                 const Custom_Text(text: 'العنوان',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['address'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                                 const Custom_Text(text: 'نوع التوصيل',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['home'],
-  //                                     fontSize: 16,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-
-  //                                 const Custom_Text(text: 'الهاتف ',
-  //                                   fontSize: 18,
-  //                                   alignment: Alignment.center,),
-  //                                 Custom_Text(text: posts['phone'],
-  //                                     fontSize: 18,
-  //                                     alignment: Alignment.center,
-  //                                     color: Colors.grey),
-  //                               ],
-  //                             ),
-  //                             const Divider(thickness: 0.7, color: Colors
-  //                                 .grey,),
-  //                             (posts['date'] != null) ?
-  //                             Column(
-  //                               children: [
-  //                                 const SizedBox(height: 10,),
-  //                                 Row(children: [
-  //                                   const SizedBox(width: 11,),
-  //                                   const Custom_Text(text: 'تاريخ الطلب',
-  //                                     fontSize: 16,
-  //                                     color: ColorsManager.primary,),
-  //                                   const SizedBox(width: 11,),
-  //                                   Custom_Text(text: posts['date'],
-  //                                     fontSize: 16,
-  //                                     color: Colors.grey,)
-  //                                 ],),
-
-  //                                 const SizedBox(height: 10,),
-  //                                 Row(children: [
-  //                                   const SizedBox(width: 11,),
-  //                                   const Custom_Text(text: 'توقيت الطلب',
-  //                                     fontSize: 16,
-  //                                     color: ColorsManager.primary,),
-  //                                   const SizedBox(width: 11,),
-  //                                   Custom_Text(text: posts['time'],
-  //                                     fontSize: 16,
-  //                                     color: Colors.grey,)
-  //                                 ],)
-  //                               ],
-  //                             ) : const SizedBox(),
-  //                             const SizedBox(height: 10,),
-  //                             const Custom_Text(text: 'الطلب ',
-  //                               fontSize: 28,
-  //                               alignment: Alignment.center,),
-  //                             for(int i = 0; i < order.length; i++)
-  //                               Column(
-  //                                 children: [
-  //                                   Row(
-  //                                     children: [
-  //                                       SizedBox(
-  //                                         height: 100,
-  //                                         width: 80,
-  //                                         child: Image.network(order[i]['image']),
-  //                                       ),
-  //                                       SizedBox(
-  //                                         width:125,
-  //                                         child: Wrap(
-  //                                             children:[
-  //                                               Center(
-  //                                                 child: Text(
-  //                                                     order[i]['name'].toString(),
-  //                                                     maxLines:2,
-  //                                                     style: GoogleFonts.tajawal(
-  //                                                       color:ColorsManager.primary,
-  //                                                       fontSize: 14,fontWeight: FontWeight.bold,
-  //                                                       textBaseline: TextBaseline.alphabetic,
-  //                                                     )
-  //                                                 ),
-  //                                               ),
-  //                                             ]
-  //                                         ),
-  //                                       ),
-
-  //                                       const SizedBox(width: 6,),
-  //                                       Column(
-  //                                         children: [
-  //                                           const Custom_Text(text: 'السعر',
-  //                                               fontSize: 16,
-  //                                               alignment: Alignment.center),
-  //                                           Custom_Text(text: order[i]['price'],
-  //                                               fontSize: 16,
-  //                                               alignment: Alignment.center),
-  //                                         ],
-  //                                       ),
-  //                                       const SizedBox(width: 7,),
-  //                                       Custom_Text(
-  //                                           text: " X " + order[i]['quant'],
-  //                                           fontSize: 16,
-  //                                           alignment: Alignment.center),
-  //                                     ],
-  //                                   ),
-  //                                   const Divider(
-  //                                     thickness: 0.7, color: Colors.grey,)
-  //                                 ],
-  //                               ),
-
-  //                             const SizedBox(height: 10,),
-  //                             Custom_Text(text: "${"الاجمالي = " + posts['total']} "+posts['currency'],
-  //                               fontSize: 28,
-  //                               alignment: Alignment.center,),
-  //                             const SizedBox(height: 10,),
-  //                             Column(
-  //                               children: [
-
-  //                                 const Custom_Text(
-  //                                     text: 'حالة الطلب ',
-  //                                     fontSize: 24,
-  //                                     alignment: Alignment.center),
-
-
-
-  //                                 Custom_Text(
-  //                                     text: status,
-  //                                     fontSize: 24,
-  //                                     color:Colors.pink,
-  //                                     alignment: Alignment.center),
-  //                               ],
-  //                             ),
-  //                             const SizedBox(height: 11,),
-  //                             Row(
-  //                               children:  [
-  //                                 const SizedBox(width: 44,),
-
-  //                                 const SizedBox(width: 32,),
-  //                                 InkWell(
-  //                                   child:  const Card(
-  //                                     color:Colors.blue,
-  //                                     child:Padding(
-  //                                       padding: EdgeInsets.all(12.0),
-  //                                       child: Custom_Text(
-  //                                         text: 'موافقة ',
-  //                                         fontSize: 21,
-  //                                         alignment:Alignment.center,
-  //                                         color:ColorsManager.primary2,
-  //                                       ),
-  //                                     ),
-  //                                   ),
-  //                                   onTap:(){
-  //                                     EditOrderStatus(posts: posts, status: 'confirm');
-  //                                   },
-  //                                 ),
-
-  //                               ],
-  //                             ),
-  //                             const SizedBox(height: 12,),
-
-  //                             (posts['status']!='waiting')?
-  //                             Padding(
-  //                               padding: const EdgeInsets.all(8.0),
-  //                               child: InkWell(
-  //                                 child:  const Card(
-  //                                   color:Colors.red,
-  //                                   child:Padding(
-  //                                     padding: EdgeInsets.all(12.0),
-  //                                     child: Custom_Text(
-  //                                       text: 'حذف',
-  //                                       fontSize: 21,
-  //                                       alignment:Alignment.center,
-  //                                       color:ColorsManager.primary2,
-  //                                     ),
-  //                                   ),
-  //                                 ),
-  //                                 onTap:(){
-  //                                   DeleteDataInFireBase(posts: posts);
-  //                                 },
-  //                               ),
-  //                             ):const SizedBox(),
-
-  //                             const SizedBox(height: 22,),
-
-
-  //                           ],
-  //                         ),),
-  //                     );
-  //                   });
-  //           }
-  //         }
-  //     ),
-  //   );
-
-  // }
-
-
-
-}
-
-
-DeleteDataInFireBase ({required DocumentSnapshot posts})async{
-
-  final CollectionReference _updates =
-  FirebaseFirestore.instance.collection('orders');
-  await _updates
-      .where('order_id', isEqualTo: posts['order_id'])
-      .get().then((snapshot) {
-    snapshot.docs.last.reference.delete()
-        .then((value) {
-      print("DELETED");
-
+  EditOrderStatus ({
+    required DocumentSnapshot posts,required String status})async{
+    final CollectionReference _updates =
+    FirebaseFirestore.instance.collection('orders');
+    await _updates
+        .where('order_id', isEqualTo: posts['order_id'])
+        .get().then((snapshot) {
+      snapshot.docs.last.reference.update({
+        'status':status,
+        // 'rate': 0.0,
+      }).then((value) {
+        //  appMessage(text: 'تم تعديل الحالة بنجاح ');
+        // Get.offAll(const AdminView());
+        print("EDITED");
+      });
     });
-  });
+  }
+  Widget CanceledOrdersWidget() {
+    return _buildOrderList(
+      status: 'refuse',
+      actionButtons: (posts) => Center(
+        child: _buildActionButton(
+          text: 'Approve',
+          color: Colors.green,
+          onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
+        ),
+      ),
+    );
+  }
 
-}
+  Widget DelOrdersWidget() {
+    return _buildOrderList(
+      status: 'del',
+      actionButtons: (posts) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            text: 'Approve',
+            color: Colors.green,
+            onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
+          ),
+          _buildActionButton(
+            text: 'Reject',
+            color: Colors.red,
+            onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
+          ),
+        ],
+      ),
+    );
+  }
 
-EditOrderStatus ({
-  required DocumentSnapshot posts,required String status})async{
-  final CollectionReference _updates =
-  FirebaseFirestore.instance.collection('orders');
-  await _updates
-      .where('order_id', isEqualTo: posts['order_id'])
-      .get().then((snapshot) {
-    snapshot.docs.last.reference.update({
-      'status':status,
-      // 'rate': 0.0,
-    }).then((value) {
-      //  appMessage(text: 'تم تعديل الحالة بنجاح ');
-      // Get.offAll(const AdminView());
-      print("EDITED");
+  Widget _buildOrderList({
+    required String status,
+    required Widget Function(DocumentSnapshot) actionButtons,
+  }) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('orders')
+          .where('status', isEqualTo: status)
+          .orderBy('date', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text(
+                'No orders found',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            DocumentSnapshot posts = snapshot.data!.docs[index];
+            List order = posts['order'];
+
+            return Card(
+              elevation: 2,
+              margin: const EdgeInsets.only(bottom: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildOrderHeader(posts),
+                    const SizedBox(height: 16),
+                    _buildCustomerInfo(posts),
+                    const SizedBox(height: 16),
+                    _buildAddressInfo(posts),
+                    const Divider(height: 24, thickness: 1),
+                    _buildOrderDateAndTime(posts),
+                    const SizedBox(height: 16),
+                    _buildOrderItemsHeader(),
+                    ..._buildOrderItems(order),
+                    const SizedBox(height: 16),
+                    _buildOrderTotal(posts),
+                    const SizedBox(height: 16),
+                    _buildOrderStatus(posts),
+                    const SizedBox(height: 16),
+                    actionButtons(posts),
+                    if (posts['status'] != 'waiting') ...[
+                      const SizedBox(height: 8),
+                      _buildDeleteButton(posts),
+                    ],
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildOrderHeader(DocumentSnapshot posts) {
+    return Column(
+      children: [
+        const Text(
+          'Order ID:',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          posts['order_id'],
+          style: const TextStyle(
+            fontSize: 18,
+            color: Colors.black,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerInfo(DocumentSnapshot posts) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Customer Information',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildInfoRow('Email', posts['user_email']),
+        const SizedBox(height: 8),
+        _buildInfoRow('Name', posts['user_name']),
+      ],
+    );
+  }
+
+  Widget _buildAddressInfo(DocumentSnapshot posts) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Address Information',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildInfoRow('Address', posts['address']),
+        const SizedBox(height: 8),
+        _buildInfoRow('Phone', posts['phone']),
+      ],
+    );
+  }
+
+  Widget _buildOrderDateAndTime(DocumentSnapshot posts) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.calendar_today, size: 16),
+            const SizedBox(width: 8),
+            const Text(
+              'Order Date:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+            Text(posts['date'] ?? 'N/A'),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.access_time, size: 16),
+            const SizedBox(width: 8),
+            const Text(
+              'Order Time:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+            Text(posts['time'] ?? 'N/A'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrderItemsHeader() {
+    return const Text(
+      'Order Items',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  List<Widget> _buildOrderItems(List order) {
+    return List.generate(order.length, (i) {
+      return Column(
+        children: [
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  order[i]['image'],
+                  height: 80,
+                  width: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order[i]['name'],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${order[i]['price']} EGP',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                "x${order[i]['quant']}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const Divider(height: 24, thickness: 1),
+        ],
+      );
     });
-  });
+  }
+
+  Widget _buildOrderTotal(DocumentSnapshot posts) {
+    return Center(
+      child: Text(
+        "Total: ${posts['total']} EGP",
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: ColorsManager.primary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderStatus(DocumentSnapshot posts) {
+    String status = '';
+    if (posts['status'] == 'refuse') {
+      status = 'Canceled';
+    } else if (posts['status'] == 'approved') {
+      status = 'Approved';
+    } else if (posts['status'] == 'del') {
+      status = 'Delivered';
+    } else if (posts['status'] == 'waiting') {
+      status = 'Pending Approval';
+    }
+
+    return Column(
+      children: [
+        const Text(
+          'Order Status',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          status,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: _getStatusColor(posts['status']),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeleteButton(DocumentSnapshot posts) {
+    return Center(
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        //onPressed: () => DeleteDataInFireBase(posts: posts),
+        onPressed: () {  },
+        child: const Text(
+          'Delete',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String text,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: onTap,
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            '$label:',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.grey),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'refuse':
+        return Colors.red;
+      case 'approved':
+        return Colors.green;
+      case 'del':
+        return Colors.blue;
+      case 'waiting':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
 }
+
+// Keep your existing helper functions (DeleteDataInFireBase and EditOrderStatus) unchanged
