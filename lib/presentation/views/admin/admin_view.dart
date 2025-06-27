@@ -56,25 +56,25 @@ class _AdminViewState extends State<AdminView> {
             child: CatView()
         );
       case 'orders_waiting':
-        return SizedBox(
+        return const SizedBox(
             height: 900, // Define a fixed height or use Expanded
             child: OrdersView(status: 'waiting',)
         );
       //  return OrdersView(status: 'waiting');
       case 'orders_approved':
-        return SizedBox(
+        return const SizedBox(
             height: 900, // Define a fixed height or use Expanded
             child:OrdersView(status: 'approved')
         );
 
       case 'orders_delivered':
-        return SizedBox(
+        return const SizedBox(
             height: 900, // Define a fixed height or use Expanded
             child:OrdersView(status: 'del')
         );
 
       case 'orders_refused':
-        return SizedBox(
+        return const SizedBox(
             height: 900, // Define a fixed height or use Expanded
             child:OrdersView(status: 'refuse')
         );
@@ -390,7 +390,7 @@ class SidebarButton extends StatelessWidget {
                   BoxShadow(
                     color: selectedColor.withOpacity(0.12),
                     blurRadius: 10,
-                    offset: Offset(0, 4),
+                    offset: const Offset(0, 4),
                   ),
                 ]
               : [],

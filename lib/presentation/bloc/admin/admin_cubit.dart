@@ -399,13 +399,24 @@ changeCatData2(String val){
     emit(ChangeDataSuccessState());
   }
 
-  EditDataInFireBase ({required DocumentSnapshot posts})async{
+
+  EditDataInFireBase ({required DocumentSnapshot posts,required List<String>images })async{
 
     String name='';
+    String nameAr='';
     num pr=0.0;
     //num quantity=0.0;
     String des='';
-    String val='';
+    String desEn='';
+
+    if(nameArController.text.length<2){
+      nameAr=posts['nameAr'];
+    }
+    else{
+      nameAr=nameArController.text;
+    }
+
+
 
     if(nameController.text.length<2){
       name=posts['name'];
@@ -414,19 +425,27 @@ changeCatData2(String val){
       name=nameController.text;
     }
 
-    if(desController.text.length<2){
-      des=posts['des'];
+    if(desArController.text.length<2){
+      des=posts['desAr'];
     }
     else{
-      des=desController.text;
+      des=desArController.text;
     }
 
-    if(priceVal.text.length<1){
-      val=posts['val'];
+    if(desController.text.length<2){
+      desEn=posts['des'];
     }
     else{
-      val=priceVal.text;
+      desEn=desController.text;
     }
+
+
+    // if(priceVal.text.isEmpty){
+    //   val=posts['val'];
+    // }
+    // else{
+    //   val=priceVal.text;
+    // }
 
 
     if(price.text.length<2){
@@ -439,6 +458,7 @@ changeCatData2(String val){
 
 
 
+    if(images.isNotEmpty){
     final CollectionReference _updates =
     FirebaseFirestore.instance.collection('products');
     await _updates
@@ -447,17 +467,44 @@ changeCatData2(String val){
       snapshot.docs.last.reference.update({
         'name':name,
         'price': pr,
+        'nameAr':nameAr,
         'cat': selectedValue,
-        'value':val,
-        'des':des
+        'images':images,
+        'image':images[0],
+        //'value':val,
+        'des':desEn,
+        'desAr':des,
       }).then((value) {
-
         print("EDITED");
         emit(EditProductsSuccessState());
-
       });
     });
+  }else{
+
+
+      final CollectionReference _updates =
+      FirebaseFirestore.instance.collection('products');
+      await _updates
+          .where('productid', isEqualTo: posts['productid'])
+          .get().then((snapshot) {
+        snapshot.docs.last.reference.update({
+          'name':name,
+          'price': pr,
+          'nameAr':nameAr,
+          'cat': selectedValue,
+          //'value':val,
+          'des':desEn,
+          'desAr':des,
+        }).then((value) {
+          print("EDITED");
+          emit(EditProductsSuccessState());
+        });
+      });
+
+
+    }
   }
+
 
   EditDataInFireBase2 ({required DocumentSnapshot posts})async{
 

@@ -54,7 +54,9 @@ class AddNewCat extends StatelessWidget {
                   // ),
 
                   // Image Section Title
-                  const ImageWidget(txt: 'اضف صورة القسم'),
+           const ImageWidget( title:'اضف صورة القسم'),
+
+
                   //const SizedBox(height: 16),
 
                   // // Image Picker and Preview

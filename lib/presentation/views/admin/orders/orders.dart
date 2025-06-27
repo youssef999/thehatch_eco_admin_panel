@@ -1,15 +1,9 @@
-
-
-// ignore_for_file: non_constant_identifier_names, prefer_interpolation_to_compose_strings
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:shop_app/presentation/resources/color_manager.dart';
-import 'package:shop_app/presentation/widgets/Custom_Text.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// ignore: must_be_immutable
+import '../../../resources/color_manager.dart' show ColorsManager;
+
 class OrdersView extends StatefulWidget {
   final String status;
 
@@ -66,15 +60,15 @@ class _OrdersViewState extends State<OrdersView> {
   String _getAppBarTitle() {
     switch (widget.status) {
       case 'waiting':
-        return 'Pending Orders';
+        return 'الطلبات المعلقة';
       case 'del':
-        return 'Delivered Orders';
+        return 'الطلبات المسلمة';
       case 'approved':
-        return 'Approved Orders';
+        return 'الطلبات المعتمدة';
       case 'refuse':
-        return 'Canceled Orders';
+        return 'الطلبات الملغاة';
       default:
-        return 'Orders';
+        return 'الطلبات';
     }
   }
 
@@ -85,17 +79,17 @@ class _OrdersViewState extends State<OrdersView> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildActionButton(
-            text: 'Approve',
+            text: 'موافقة',
             color: Colors.green,
             onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
           ),
           _buildActionButton(
-            text: 'Delivered',
+            text: 'تم التسليم',
             color: Colors.blue,
             onTap: () => EditOrderStatus(posts: posts, status: 'del'),
           ),
           _buildActionButton(
-            text: 'Reject',
+            text: 'رفض',
             color: Colors.red,
             onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
           ),
@@ -111,12 +105,12 @@ class _OrdersViewState extends State<OrdersView> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildActionButton(
-            text: 'Mark as Delivered',
+            text: 'تم التسليم',
             color: Colors.blue,
             onTap: () => EditOrderStatus(posts: posts, status: 'del'),
           ),
           _buildActionButton(
-            text: 'Reject',
+            text: 'رفض',
             color: Colors.red,
             onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
           ),
@@ -125,29 +119,33 @@ class _OrdersViewState extends State<OrdersView> {
     );
   }
 
-  EditOrderStatus ({
-    required DocumentSnapshot posts,required String status})async{
+  EditOrderStatus({
+    required DocumentSnapshot posts,
+    required String status,
+  }) async {
     final CollectionReference _updates =
     FirebaseFirestore.instance.collection('orders');
     await _updates
         .where('order_id', isEqualTo: posts['order_id'])
-        .get().then((snapshot) {
+        .get()
+        .then((snapshot) {
       snapshot.docs.last.reference.update({
-        'status':status,
+        'status': status,
         // 'rate': 0.0,
       }).then((value) {
-        //  appMessage(text: 'تم تعديل الحالة بنجاح ');
+        // appMessage(text: 'تم تعديل الحالة بنجاح');
         // Get.offAll(const AdminView());
         print("EDITED");
       });
     });
   }
+
   Widget CanceledOrdersWidget() {
     return _buildOrderList(
       status: 'refuse',
       actionButtons: (posts) => Center(
         child: _buildActionButton(
-          text: 'Approve',
+          text: 'موافقة',
           color: Colors.green,
           onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
         ),
@@ -162,12 +160,12 @@ class _OrdersViewState extends State<OrdersView> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildActionButton(
-            text: 'Approve',
+            text: 'موافقة',
             color: Colors.green,
             onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
           ),
           _buildActionButton(
-            text: 'Reject',
+            text: 'رفض',
             color: Colors.red,
             onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
           ),
@@ -200,7 +198,7 @@ class _OrdersViewState extends State<OrdersView> {
             child: Padding(
               padding: EdgeInsets.all(20.0),
               child: Text(
-                'No orders found',
+                'لا توجد طلبات',
                 style: TextStyle(fontSize: 18, color: Colors.grey),
               ),
             ),
@@ -261,7 +259,7 @@ class _OrdersViewState extends State<OrdersView> {
     return Column(
       children: [
         const Text(
-          'Order ID:',
+          'رقم الطلب:',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -285,16 +283,16 @@ class _OrdersViewState extends State<OrdersView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Customer Information',
+          'معلومات العميل',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
-        _buildInfoRow('Email', posts['user_email']),
+        _buildInfoRow('البريد الإلكتروني', posts['user_email']),
         const SizedBox(height: 8),
-        _buildInfoRow('Name', posts['user_name']),
+        _buildInfoRow('الاسم', posts['user_name']),
       ],
     );
   }
@@ -304,16 +302,16 @@ class _OrdersViewState extends State<OrdersView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Address Information',
+          'معلومات العنوان',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
-        _buildInfoRow('Address', posts['address']),
+        _buildInfoRow('العنوان', posts['address']),
         const SizedBox(height: 8),
-        _buildInfoRow('Phone', posts['phone']),
+        _buildInfoRow('الهاتف', posts['phone']),
       ],
     );
   }
@@ -326,7 +324,7 @@ class _OrdersViewState extends State<OrdersView> {
             const Icon(Icons.calendar_today, size: 16),
             const SizedBox(width: 8),
             const Text(
-              'Order Date:',
+              'تاريخ الطلب:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
@@ -339,7 +337,7 @@ class _OrdersViewState extends State<OrdersView> {
             const Icon(Icons.access_time, size: 16),
             const SizedBox(width: 8),
             const Text(
-              'Order Time:',
+              'وقت الطلب:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
@@ -352,7 +350,7 @@ class _OrdersViewState extends State<OrdersView> {
 
   Widget _buildOrderItemsHeader() {
     return const Text(
-      'Order Items',
+      'عناصر الطلب',
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
@@ -392,7 +390,7 @@ class _OrdersViewState extends State<OrdersView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${order[i]['price']} EGP',
+                      '${order[i]['price']} جنيه',
                       style: const TextStyle(color: Colors.grey),
                     ),
                   ],
@@ -414,7 +412,7 @@ class _OrdersViewState extends State<OrdersView> {
   Widget _buildOrderTotal(DocumentSnapshot posts) {
     return Center(
       child: Text(
-        "Total: ${posts['total']} EGP",
+        "الإجمالي: ${posts['total']} جنيه",
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -427,19 +425,19 @@ class _OrdersViewState extends State<OrdersView> {
   Widget _buildOrderStatus(DocumentSnapshot posts) {
     String status = '';
     if (posts['status'] == 'refuse') {
-      status = 'Canceled';
+      status = 'ملغى';
     } else if (posts['status'] == 'approved') {
-      status = 'Approved';
+      status = 'معتمد';
     } else if (posts['status'] == 'del') {
-      status = 'Delivered';
+      status = 'تم التسليم';
     } else if (posts['status'] == 'waiting') {
-      status = 'Pending Approval';
+      status = 'بانتظار الموافقة';
     }
 
     return Column(
       children: [
         const Text(
-          'Order Status',
+          'حالة الطلب',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -469,9 +467,9 @@ class _OrdersViewState extends State<OrdersView> {
           ),
         ),
         //onPressed: () => DeleteDataInFireBase(posts: posts),
-        onPressed: () {  },
+        onPressed: () {},
         child: const Text(
-          'Delete',
+          'حذف',
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -504,9 +502,9 @@ class _OrdersViewState extends State<OrdersView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 80,
+          width: 100,
           child: Text(
-            '$label:',
+            label,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -536,5 +534,3 @@ class _OrdersViewState extends State<OrdersView> {
     }
   }
 }
-
-// Keep your existing helper functions (DeleteDataInFireBase and EditOrderStatus) unchanged

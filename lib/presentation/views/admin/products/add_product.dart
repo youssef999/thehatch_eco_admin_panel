@@ -72,7 +72,7 @@ class AddNewProduct extends StatelessWidget {
                              const Column(
                                       children: [
                         SizedBox(height: 24),
-                        ImageWidget(txt: ' اضف صور المنتج '),
+                        ImageWidget(title: ' اضف صور المنتج '),
                         SizedBox(height: 20),
                                       ],
                                     ),
