@@ -2,8 +2,10 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shop_app/excel.dart';
 import 'package:shop_app/presentation/views/admin/products/product_details.dart';
 
 
@@ -22,17 +24,45 @@ class _ProductsViewState extends State<ProductsView> {
 
   @override
   void initState() {
+
+    fetchProducts();
     super.initState();
     _loadCategories();
   }
 
+  List<Map<String, dynamic>> productsData = []; // Initialize with an empty list>
+  Future<List<Map<String, dynamic>>> fetchProducts() async {
+    try {
+      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .orderBy('name') // optional: remove if you don’t need sorting
+          .get();
+
+      final products = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // include document ID if needed
+        return data;
+      }).toList();
+
+      setState(() {
+        productsData=products;
+      });
+
+      //exportUserToExcel(productsData);
+
+      return products;
+    } catch (e) {
+      print('Error fetching products: $e');
+      return []; // return empty list on error
+    }
+  }
   Future<void> _loadCategories() async {
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('cat')
           .orderBy('nameAr')
           .get();
-      
+
       setState(() {
         categories = snapshot.docs.map((doc) => {
           'id': doc.id,
@@ -81,12 +111,14 @@ class _ProductsViewState extends State<ProductsView> {
       appBar: AppBar(
         elevation: 0,
         toolbarHeight: 56,
-        title: const Text(
-          'المنتجات',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+        title: const Center(
+          child: Text(
+            'المنتجات',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 23,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         backgroundColor: Colors.blue, // Change to your primary color
@@ -216,7 +248,7 @@ class CategoryBottomSheet extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          
+
           // Header
           Padding(
             padding: const EdgeInsets.all(16),
@@ -244,9 +276,9 @@ class CategoryBottomSheet extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const Divider(height: 1),
-          
+
           // Search field (optional)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -267,7 +299,7 @@ class CategoryBottomSheet extends StatelessWidget {
               },
             ),
           ),
-          
+
           // Categories list
           Flexible(
             child: ListView.builder(
@@ -278,7 +310,7 @@ class CategoryBottomSheet extends StatelessWidget {
               itemBuilder: (context, index) {
                 final category = categories[index];
                 final isSelected = selectedCategory == category['id'];
-                
+
                 return ListTile(
                   title: Text(
                     category['nameAr'],
@@ -311,9 +343,9 @@ class CategoryBottomSheet extends StatelessWidget {
 class ProductWidget extends StatelessWidget {
   String? selectedCategory;
   String? selectedCategoryName;
-  
+
    ProductWidget({
-    Key? key, 
+    Key? key,
     this.selectedCategory,
     this.selectedCategoryName,
   }) : super(key: key);
@@ -380,7 +412,7 @@ class ProductWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  selectedCategory != null 
+                  selectedCategory != null
                       ? 'لا توجد منتجات في هذه الفئة'
                       : 'لا توجد منتجات',
                   style: TextStyle(
@@ -421,7 +453,7 @@ class ProductWidget extends StatelessWidget {
               crossAxisCount: 3,
               crossAxisSpacing: 12,
               mainAxisSpacing: 11,
-              childAspectRatio: 1.11,
+              childAspectRatio: 1.19,
             ),
             physics: const BouncingScrollPhysics(),
             itemCount: snapshot.data!.docs.length,
@@ -490,19 +522,34 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Product Image
+
             Hero(
               tag: 'img$index',
-              child: CachedNetworkImage(
-                height:222,
+              child: kIsWeb
+                  ?
+              Image.network(
+                product['image'] ?? '',
+                height: 252,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey[200],
+                  child: const Center(
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.grey,
+                      size: 40,
+                    ),
+                  ),
+                ),
+              )
+                  : CachedNetworkImage(
+                height: 242,
                 imageUrl: product['image'] ?? '',
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Colors.grey[200],
                   child: const Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
                 errorWidget: (context, url, error) => Container(
@@ -517,7 +564,35 @@ class ProductCard extends StatelessWidget {
                 ),
               ),
             ),
-            
+
+            // Product Image
+            // Hero(
+            //   tag: 'img$index',
+            //   child: CachedNetworkImage(
+            //     height:222,
+            //     imageUrl: product['image'] ?? '',
+            //     fit: BoxFit.contain,
+            //     placeholder: (context, url) => Container(
+            //       color: Colors.grey[200],
+            //       child: const Center(
+            //         child: CircularProgressIndicator(
+            //           strokeWidth: 2,
+            //         ),
+            //       ),
+            //     ),
+            //     errorWidget: (context, url, error) => Container(
+            //       color: Colors.grey[200],
+            //       child: const Center(
+            //         child: Icon(
+            //           Icons.image_not_supported,
+            //           color: Colors.grey,
+            //           size: 40,
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            //
             // Product Details
             Padding(
               padding: const EdgeInsets.all(12),
@@ -535,9 +610,9 @@ class ProductCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // Product Price
                   Text(
                     '\$${product['price']?.toStringAsFixed(2) ?? '0.00'}',
@@ -547,7 +622,7 @@ class ProductCard extends StatelessWidget {
                       color: Colors.blue,
                     ),
                   ),
-                  
+
                   // Category (optional)
                   if (product['catAr'] != null) ...[
                     const SizedBox(height: 4),

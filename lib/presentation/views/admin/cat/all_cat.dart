@@ -46,64 +46,98 @@ class CatWidget extends StatelessWidget {
           return const Center(child: Text("لا توجد بيانات حالياً."));
         }
 
-        return GridView.builder(
-          padding: const EdgeInsets.all(12),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.64,
-          ),
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            DocumentSnapshot post = snapshot.data!.docs[index];
+        return Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.33,
+            ),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot post = snapshot.data!.docs[index];
 
-            return InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {},
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                color: ColorsManager.primary2,
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {},
+                    hoverColor: ColorsManager.primary2.withOpacity(0.08),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 6,
+                      color: ColorsManager.primary2,
+                      shadowColor: Colors.black26,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
 
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          post['image'],
-                          height: 183,
-                         // width: 80,
-                          fit: BoxFit.cover,
+                            // Product image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                post['image'],
+                                height: 167,
+                                width: double.infinity,
+                                fit: BoxFit.contain
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Product name
+                            Custom_Text(
+                              text: post['name'],
+                              fontSize: 18,
+                              alignment: Alignment.center,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Delete button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 3,
+                                ),
+                                onPressed: () {
+                                  _showDeleteDialog(context, post['name']);
+                                },
+                                child: const Text(
+                                  'حذف القسم',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Custom_Text(
-                        text: post['name'],
-                        fontSize: 16,
-                        alignment: Alignment.center,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      const SizedBox(height: 14),
-                      CustomButton(
-                        text: 'حذف القسم',
-                        onPressed: () {
-                          _showDeleteDialog(context, post['name']);
-                        },
-                        color1: Colors.red.shade700,
-                        color2: Colors.red.shade300,
-                      )
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+
+            },
+          ),
         );
       },
     );

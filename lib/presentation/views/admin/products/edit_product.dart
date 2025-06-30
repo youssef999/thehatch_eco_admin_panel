@@ -64,10 +64,10 @@ class EditProduct extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(15.0),
                     child: SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.all(25.0),
+                        padding: const EdgeInsets.all(30.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -166,7 +166,7 @@ class EditProduct extends StatelessWidget {
                             _LabeledTextField(
                               controller: cubit.desArController,
                               hint: posts['desAr'],
-                              maxLines: 4,
+                              maxLines: 6,
                             ),
 
                             // Description (English)
@@ -174,7 +174,7 @@ class EditProduct extends StatelessWidget {
                             _LabeledTextField(
                               controller: cubit.desController,
                               hint: posts['des'],
-                              maxLines: 4,
+                              maxLines: 6,
                             ),
 
                             const SizedBox(height: 36),

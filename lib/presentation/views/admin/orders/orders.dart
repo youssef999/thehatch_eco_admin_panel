@@ -36,6 +36,7 @@ class _OrdersViewState extends State<OrdersView> {
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
@@ -46,10 +47,22 @@ class _OrdersViewState extends State<OrdersView> {
         child: ListView(
           children: [
             const SizedBox(height: 16),
-            if (widget.status == 'waiting') OrdersWidget(),
-            if (widget.status == 'del') DelOrdersWidget(),
-            if (widget.status == 'approved') ApprovedOrdersWidget(),
-            if (widget.status == 'refuse') CanceledOrdersWidget(),
+            if (widget.status == 'waiting') Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: OrdersWidget(),
+            ),
+            if (widget.status == 'del') Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: DelOrdersWidget(),
+            ),
+            if (widget.status == 'approved') Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ApprovedOrdersWidget(),
+            ),
+            if (widget.status == 'refuse') Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CanceledOrdersWidget(),
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -76,7 +89,7 @@ class _OrdersViewState extends State<OrdersView> {
     return _buildOrderList(
       status: 'waiting',
       actionButtons: (posts) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildActionButton(
             text: 'موافقة',
@@ -205,7 +218,7 @@ class _OrdersViewState extends State<OrdersView> {
           );
         }
 
-        return ListView.builder(
+        return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: snapshot.data!.docs.length,
@@ -240,16 +253,19 @@ class _OrdersViewState extends State<OrdersView> {
                     _buildOrderStatus(posts),
                     const SizedBox(height: 16),
                     actionButtons(posts),
-                    if (posts['status'] != 'waiting') ...[
-                      const SizedBox(height: 8),
-                      _buildDeleteButton(posts),
-                    ],
+                    // if (posts['status'] != 'waiting')...[
+                    //   const SizedBox(height: 8),
+                    //   _buildDeleteButton(posts),
+                    // ],
                     const SizedBox(height: 8),
                   ],
                 ),
               ),
             );
-          },
+          }, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8,
+          childAspectRatio: 0.66
+        ),
         );
       },
     );
@@ -297,7 +313,7 @@ class _OrdersViewState extends State<OrdersView> {
     );
   }
 
-  Widget _buildAddressInfo(DocumentSnapshot posts) {
+  Widget _buildAddressInfo(DocumentSnapshot posts){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -390,7 +406,7 @@ class _OrdersViewState extends State<OrdersView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${order[i]['price']} جنيه',
+                      '${order[i]['price']} ',
                       style: const TextStyle(color: Colors.grey),
                     ),
                   ],
@@ -409,10 +425,10 @@ class _OrdersViewState extends State<OrdersView> {
     });
   }
 
-  Widget _buildOrderTotal(DocumentSnapshot posts) {
+  Widget _buildOrderTotal(DocumentSnapshot posts){
     return Center(
       child: Text(
-        "الإجمالي: ${posts['total']} جنيه",
+        "الإجمالي: ${posts['total']} ",
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
@@ -456,25 +472,26 @@ class _OrdersViewState extends State<OrdersView> {
     );
   }
 
-  Widget _buildDeleteButton(DocumentSnapshot posts) {
-    return Center(
-      child: TextButton(
-        style: TextButton.styleFrom(
-          backgroundColor: Colors.red,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        //onPressed: () => DeleteDataInFireBase(posts: posts),
-        onPressed: () {},
-        child: const Text(
-          'حذف',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-    );
-  }
+  // Widget _buildDeleteButton(DocumentSnapshot posts) {
+  //   return
+  //     Center(
+  //     child: TextButton(
+  //       style: TextButton.styleFrom(
+  //         backgroundColor: Colors.red,
+  //         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 9),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(8),
+  //         ),
+  //       ),
+  //       //onPressed: () => DeleteDataInFireBase(posts: posts),
+  //       onPressed: () {},
+  //       child: const Text(
+  //         'حذف',
+  //         style: TextStyle(color: Colors.white,fontSize: 24),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildActionButton({
     required String text,

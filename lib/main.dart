@@ -10,7 +10,6 @@ import 'bloc_obs.dart';
 
 
  void main()async {
-
   Bloc.observer = MyBlocObserver();
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
