@@ -20,54 +20,30 @@ class AddNewProduct extends StatefulWidget {
 }
 
 class _AddNewProductState extends State<AddNewProduct> {
-
-
   @override
   void initState() {
- WidgetsBinding.instance.addPostFrameCallback((_) { autoSignIn(context); });
     super.initState();
-    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      autoSignIn(context);
+    });
   }
 
   Future<void> autoSignIn(BuildContext context) async {
-   final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
     const String email = 'test@gmail.com';
     const String password = '123456';
 
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      // Attempt to sign in with email and password
-       await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      // Close loading indicator
+      await auth.signInWithEmailAndPassword(email: email, password: password);
       Navigator.pop(context);
-
-      // Check if user is signed in
-      // if (userCredential.user != null) {
-      //   Get.snackbar(
-      //     'نجاح',
-      //     'تم تسجيل الدخول بنجاح',
-      //     snackPosition: SnackPosition.BOTTOM,
-      //     backgroundColor: Colors.green,
-      //     colorText: Colors.white,
-      //   );
-      //   // Navigate to the desired screen (e.g., AdminView)
-      //   Get.offAllNamed('/adminView'); // Adjust route name as needed
-      // }
     } on FirebaseAuthException catch (e) {
-      // Close loading indicator
-    //  Navigator.pop(context);
-
-      // Handle specific Firebase Auth errors
+      Navigator.pop(context);
       String errorMessage;
       switch (e.code) {
         case 'user-not-found':
@@ -85,8 +61,6 @@ class _AddNewProductState extends State<AddNewProduct> {
         default:
           errorMessage = 'حدث خطأ: ${e.message}';
       }
-
-      // Show error message
       Get.snackbar(
         'خطأ',
         errorMessage,
@@ -95,10 +69,7 @@ class _AddNewProductState extends State<AddNewProduct> {
         colorText: Colors.white,
       );
     } catch (e) {
-      // Close loading indicator
       Navigator.pop(context);
-
-      // Handle unexpected errors
       Get.snackbar(
         'خطأ',
         'حدث خطأ غير متوقع: $e',
@@ -108,306 +79,356 @@ class _AddNewProductState extends State<AddNewProduct> {
       );
     }
   }
+
   @override
   Widget build(BuildContext context) {
-
-    CatController catController = Get.put(CatController());
+    final CatController catController = Get.put(CatController());
     final isTablet = MediaQuery.of(context).size.width > 600;
 
-    return BlocProvider(
-      create: (context) => AdminCubit()..fetchCat(),
-      child: BlocConsumer<AdminCubit, AdminStates>(
-        listener: (context, state) {
-          if (state is AddNewProductSuccessState) {
-            appMessage(text: 'تم اضافة المنتج بنجاح');
-            Get.offAll(const AdminView());
-          }
-          if(state is setImageSuccessState){
-            print("IMAGE SUCCESS....");
-          }
-        },
-        builder: (context, state) {
-          AdminCubit cubit = AdminCubit.get(context);
+    return Theme(
+      data: ThemeData(
+        primaryColor: ColorsManager.primary,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: ColorsManager.primary,
+          primary: ColorsManager.primary,
+          secondary: Colors.blueAccent,
+          surface: Colors.white,
+        ),
+        textTheme: const TextTheme(
+          headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+          bodyMedium: TextStyle(fontSize: 16, color: Colors.black54),
+          labelLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: ColorsManager.primary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 4,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.grey),
+          ),
+          filled: true,
+          fillColor: Colors.grey[100],
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+      child: BlocProvider(
+        create: (context) => AdminCubit()..fetchCat(),
+        child: BlocConsumer<AdminCubit, AdminStates>(
+          listener: (context, state) {
+            if (state is AddNewProductSuccessState) {
+              appMessage(text: 'تم إضافة المنتج بنجاح');
+              Get.offAll(const AdminView());
+            }
+            if (state is setImageSuccessState) {
+              print("IMAGE SUCCESS....");
+            }
+          },
+          builder: (context, state) {
+            final AdminCubit cubit = AdminCubit.get(context);
 
-          return Scaffold(
-            backgroundColor: Colors.grey[50],
-            // appBar: AppBar(
-            //   elevation: 2,
-            //   backgroundColor: Colors.white,
-            //   title: const Text('إضافة منتج جديد', style: TextStyle(color: Colors.black)),
-            //   centerTitle: true,
-            // ),
-            body: Padding(
-              padding: const EdgeInsets.only(top:18.0),
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: isTablet ? 700 : double.infinity),
-                    padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.blue,
-                          blurRadius: 16,
-                          offset: Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left:90.0,right: 90,bottom: 12,top:12),
-                      child: Center(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Product Images Section
-                           // _buildImageGallery(context, cubit),
-                             const Column(
-                                      children: [
-                        SizedBox(height: 24),
-                        ImageWidget(title: ' اضف صور المنتج '),
-                        SizedBox(height: 20),
-                                      ],
-                                    ),
-                            const SizedBox(height: 24),
-                            // Product Name Fields
-                            _buildSectionHeader('اسم المنتج'),
-                            _buildDualInputFields(
-                              cubit.nameController, "الاسم الانجليزي",
-                              cubit.nameArController, "الاسم عربي",
-                            ),
-                                    
-                            const SizedBox(height: 24),
-                            // Category Dropdowns
-                            _buildSectionHeader('القسم'),
-                            _buildDualDropdowns(
-                              cubit.selectedValue, cubit.dataList, 'nameAr', cubit.changeCatData,
-                              cubit.selectedVal2, cubit.dataList, 'name', cubit.changeCatData2,
-                            ),
-                                    
-                            const SizedBox(height: 24),
-                            // Description Fields
-                            _buildSectionHeader('وصف المنتج'),
-                            _buildDualInputFields(
-                              cubit.desController, "وصف المنتج",
-                              cubit.desArController, "وصف المنتج بالعربية",
-                              maxLines: 3,
-                            ),
-                                    
-                            const SizedBox(height: 24),
-                            // Pricing Fields
-                            _buildSectionHeader('السعر والكمية'),
-                            _buildTripleInputFields(
-                              cubit.oldController, "سعر قبل الخصم",
-                              cubit.price, "سعر المنتج",
-                              cubit.quantController, "الكمية",
-                            ),
-                                    
-                            const SizedBox(height: 32),
-                            // Add Button
-                            ElevatedButton.icon(
+            return Scaffold(
+              backgroundColor: Colors.grey[100],
+              appBar: AppBar(
+                elevation: 0,
+                backgroundColor: Colors.white,
+                title: const Text(
+                  'إضافة منتج جديد',
+                  style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+                ),
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                  onPressed: () => Get.back(),
+                ),
+              ),
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: Center(
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: isTablet ? 800 : double.infinity),
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Image Widget (Unchanged)
+                          const Column(
+                            children: [
+                              ImageWidget(title: 'اضف صور المنتج'),
+                              SizedBox(height: 20),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Product Name Section
+                          _buildSectionHeader(context, 'اسم المنتج'),
+                          _buildDualInputFields(
+                            controller1: cubit.nameController,
+                            hint1: 'الاسم بالإنجليزية',
+                            controller2: cubit.nameArController,
+                            hint2: 'الاسم بالعربية',
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Category Section
+                          _buildSectionHeader(context, 'القسم'),
+                          _buildDualDropdowns(
+                            value1: cubit.selectedValue,
+                            dataList1: cubit.dataList,
+                            key1: 'nameAr',
+                            onChanged1: cubit.changeCatData,
+                            value2: cubit.selectedVal2,
+                            dataList2: cubit.dataList,
+                            key2: 'name',
+                            onChanged2: cubit.changeCatData2,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Description Section
+                          _buildSectionHeader(context, 'وصف المنتج'),
+                          _buildDualInputFields(
+                            controller1: cubit.desController,
+                            hint1: 'وصف المنتج بالإنجليزية',
+                            controller2: cubit.desArController,
+                            hint2: 'وصف المنتج بالعربية',
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Pricing Section
+                          _buildSectionHeader(context, 'السعر والكمية'),
+                          _buildTripleInputFields(
+                            controller1: cubit.oldController,
+                            hint1: 'سعر قبل الخصم',
+                            controller2: cubit.price,
+                            hint2: 'سعر المنتج',
+                            controller3: cubit.quantController,
+                            hint3: 'الكمية',
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Submit Button
+                          Center(
+                            child: ElevatedButton.icon(
+                              onPressed: cubit.wait
+                                  ? null
+                                  : () {
+                                      if (_validateForm(cubit)) {
+                                        cubit.addDataToFireBase(catController.uploadedFileURLs);
+                                      } else {
+                                        Get.snackbar(
+                                          'خطأ',
+                                          'يرجى ملء جميع الحقول المطلوبة',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: Colors.redAccent,
+                                          colorText: Colors.white,
+                                        );
+                                      }
+                                    },
+                              icon: const Icon(Icons.add, size: 24),
+                              label: Text(
+                                cubit.wait ? 'جارٍ التحميل...' : 'إضافة المنتج',
+                                style: const TextStyle(fontSize: 18),
+                              ),
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 18),
-                                backgroundColor: Colors.blue,
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                elevation: 4,
-                              ),
-                              icon: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Icon(Icons.add, color: Colors.white),
-                              ),
-                              label: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Text(
-                                  cubit.wait ? 'قيد التحميل...' : "إضافة المنتج",
-                                  style: const TextStyle(fontSize: 20, color: Colors.white),
-                                ),
-                              ),
-                              onPressed: cubit.wait ? null : () => cubit.addDataToFireBase(
-                                catController.uploadedFileURLs
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  // Helper widgets for modularity and clarity
-Widget _buildImageGallery(BuildContext context, AdminCubit cubit) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        'صور المنتج',
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-      ),
-      const SizedBox(height: 12),
-      SizedBox(
-        height: 110,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: cubit.selectedImages.length + 1,
-          separatorBuilder: (_, __) => const SizedBox(width: 12),
-          itemBuilder: (context, index) {
-            if (index == cubit.selectedImages.length) {
-              // Add image button
-              return GestureDetector(
-                onTap: cubit.pickImages,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: ColorsManager.primary, width: 2),
-                  ),
-                  child: const Icon(Icons.add_a_photo, size: 36, color: ColorsManager.primary),
-                ),
-              );
-            }
-            // Display selected image
-            final image = cubit.selectedImages[index];
-            return Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.file(
-                    File(image.path),
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: GestureDetector(
-                    onTap: () => cubit.removeImage(index),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.black54,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.close, size: 20, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
             );
           },
         ),
       ),
-      const SizedBox(height: 8),
-      // Show image paths for debugging
-      if (cubit.selectedImages.isNotEmpty)
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: cubit.selectedImages
-              .map((img) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2.0),
-                    child: Text(
-                      img.path,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ))
-              .toList(),
-        ),
-    ],
-  );
-}
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: ColorsManager.primary)),
     );
   }
 
-  Widget _buildDualInputFields(
-    TextEditingController controller1, String hint1,
-    TextEditingController controller2, String hint2, {int maxLines = 1}
-  ) {
+  // Form Validation
+  bool _validateForm(AdminCubit cubit) {
+    return cubit.nameController.text.isNotEmpty &&
+        cubit.nameArController.text.isNotEmpty &&
+        cubit.desController.text.isNotEmpty &&
+        cubit.desArController.text.isNotEmpty &&
+        cubit.oldController.text.isNotEmpty &&
+        cubit.price.text.isNotEmpty &&
+        cubit.quantController.text.isNotEmpty &&
+        cubit.selectedValue != null &&
+        cubit.selectedVal2 != null;
+  }
+
+  // Section Header
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.headlineSmall,
+        semanticsLabel: title,
+      ),
+    );
+  }
+
+  // Dual Input Fields
+  Widget _buildDualInputFields({
+    required TextEditingController controller1,
+    required String hint1,
+    required TextEditingController controller2,
+    required String hint2,
+    int maxLines = 1,
+  }) {
     return Row(
       children: [
-        Expanded(child:
-        CustomTextFormField(controller: controller1, hint: hint1, max: maxLines,
-        
-        obx: false, ontap: (){}, type:TextInputType.text, obs: false, color: Colors.black,
-        )
+        Expanded(
+          child: CustomTextFormField(
+            controller: controller1,
+            hint: hint1,
+            max: maxLines,
+            obx: false,
+            ontap: () {},
+            type: TextInputType.text,
+            obs: false,
+            color: Colors.black,
+         //   validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+          ),
         ),
-
-        const SizedBox(width: 12),
-
-        Expanded(child: CustomTextFormField(controller: controller2, hint: hint2, max: maxLines,
-          obx: false, ontap: (){}, type:TextInputType.text, obs: false, color: Colors.black,
-        )),
+        const SizedBox(width: 16),
+        Expanded(
+          child: CustomTextFormField(
+            controller: controller2,
+            hint: hint2,
+            max: maxLines,
+            obx: false,
+            ontap: () {},
+            type: TextInputType.text,
+            obs: false,
+            color: Colors.black,
+          //  validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildDualDropdowns(
-    String? value1, List dataList, String key1, Function(String) onChanged1,
-    String? value2, List dataList2, String key2, Function(String) onChanged2
-  ) {
-    // Implement two dropdowns side by side
+  // Dual Dropdowns
+  Widget _buildDualDropdowns({
+    required String? value1,
+    required List dataList1,
+    required String key1,
+    required Function(String) onChanged1,
+    required String? value2,
+    required List dataList2,
+    required String key2,
+    required Function(String) onChanged2,
+  }) {
     return Row(
       children: [
-        Expanded(child: _customDropdown(value1, dataList, key1, onChanged1)),
-        const SizedBox(width: 12),
+        Expanded(child: _customDropdown(value1, dataList1, key1, onChanged1)),
+        const SizedBox(width: 16),
         Expanded(child: _customDropdown(value2, dataList2, key2, onChanged2)),
       ],
     );
   }
 
   Widget _customDropdown(
-    String? value, List dataList, String key, Function(String) onChanged
+    String? value,
+    List dataList,
+    String key,
+    Function(String) onChanged,
   ) {
     return DropdownButtonFormField<String>(
       value: value,
       items: dataList.map<DropdownMenuItem<String>>((data) {
         return DropdownMenuItem<String>(
           value: data[key].toString(),
-          child: Text(data[key]),
+          child: Text(data[key], style: const TextStyle(fontSize: 16)),
         );
       }).toList(),
       onChanged: (val) => onChanged(val!),
       decoration: InputDecoration(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        hintText: 'اختر القسم',
+        hintStyle: const TextStyle(color: Colors.grey),
       ),
+      validator: (value) => value == null ? 'يرجى اختيار قسم' : null,
     );
   }
 
-  Widget _buildTripleInputFields(
-    TextEditingController controller1, String hint1,
-    TextEditingController controller2, String hint2,
-    TextEditingController controller3, String hint3,
-  ) {
+  // Triple Input Fields
+  Widget _buildTripleInputFields({
+    required TextEditingController controller1,
+    required String hint1,
+    required TextEditingController controller2,
+    required String hint2,
+    required TextEditingController controller3,
+    required String hint3,
+  }) {
     return Row(
       children: [
-        Expanded(child: CustomTextFormField(controller: controller1, hint: hint1, type: TextInputType.number,
-        obx: false, ontap: (){}, obs: false, color: Colors.black
-        )),
-        const SizedBox(width: 12),
-        Expanded(child: CustomTextFormField(controller: controller2, hint: hint2, type: TextInputType.number,
-        obx: false, ontap: (){}, obs: false, color: Colors.black)
+        Expanded(
+          child: CustomTextFormField(
+            controller: controller1,
+            hint: hint1,
+            type: TextInputType.number,
+            obx: false,
+            ontap: () {},
+            obs: false,
+            color: Colors.black,
+            //validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+          ),
         ),
-        const SizedBox(width: 12),
-        Expanded(child: CustomTextFormField(controller: controller3, hint: hint3, 
-        type: TextInputType.number, obx: false, ontap: (){}, obs: false, color: Colors.black)),
+        const SizedBox(width: 16),
+        Expanded(
+          child: CustomTextFormField(
+            controller: controller2,
+            hint: hint2,
+            type: TextInputType.number,
+            obx: false,
+            ontap: () {},
+            obs: false,
+            color: Colors.black,
+           // validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: CustomTextFormField(
+            controller: controller3,
+            hint: hint3,
+            type: TextInputType.number,
+            obx: false,
+            ontap: () {},
+            obs: false,
+            color: Colors.black,
+          //  validator: (value) => value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+          ),
+        ),
       ],
     );
   }

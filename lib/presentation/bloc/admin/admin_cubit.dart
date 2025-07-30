@@ -328,8 +328,8 @@ changeCatData2(String val){
           'date':DateTime.now().toString(),
           'oldPrice':num.parse(oldController.text),
           'price': num.parse(price.text),
-          'cat': selectedValue,
-          'catAr':selectedVal2,
+          'cat': selectedVal2,
+          'catAr':selectedValue,
         }).then((value) {
           print('addddddddd');
           emit(AddNewProductSuccessState());

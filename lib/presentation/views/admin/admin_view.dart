@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // Assuming you're using GetX for navigation
 import 'package:shop_app/presentation/views/admin/products/add_product.dart';
 import 'package:shop_app/presentation/views/admin/products/products_view.dart';
+import 'package:shop_app/presentation/views/users/users.dart';
 
 // Assuming these are defined elsewhere in your project
 import '../../resources/assets_manager.dart';
@@ -11,7 +12,6 @@ import 'cat/all_cat.dart';
 import 'orders/orders.dart';
 
 
-import 'package:flutter/material.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({Key? key}) : super(key: key);
@@ -35,6 +35,8 @@ class _AdminViewState extends State<AdminView> {
         return const SizedBox(height: 1300, child: AddNewProduct());
       case 'all_products':
         return const SizedBox(height: 900, child: ProductsView());
+        case'Users':
+           return const SizedBox(height: 900, child: UsersView());
       case 'add_category':
         return const SizedBox(height: 900, child: AddNewCat());
       case 'all_categories':
@@ -207,6 +209,13 @@ class _AdminViewState extends State<AdminView> {
                           isSelected: _selectedTab == 'all_products',
                           onPressed: () => _onTabSelected('all_products'),
                         ),
+                          SidebarButton(
+                          text: 'المستخدمين',
+                          icon: Icons.person,
+                          isSelected: _selectedTab == 'Users',
+                          onPressed: () => _onTabSelected('Users'),
+                        ),
+                        //UsersView
                         SidebarButton(
                           text: 'إضافة قسم جديد',
                           icon: Icons.category,

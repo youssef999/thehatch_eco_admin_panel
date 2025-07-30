@@ -1,6 +1,12 @@
+import 'dart:collection';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:universal_html/html.dart' as html;
 
 import '../../../resources/color_manager.dart' show ColorsManager;
 
@@ -21,6 +27,122 @@ class _OrdersViewState extends State<OrdersView> {
     print("ST===${widget.status}");
     super.initState();
   }
+
+
+
+  bool isLoadingExcel=false;
+ void exportToExcel2(  List <DocumentSnapshot> users) async {
+  setState(() {
+    isLoadingExcel = true;
+  });
+  try {
+    print('🚀 Starting Excel export process...');
+
+    // First fetch all the task counts for each provider
+    List<Map<String, dynamic>> userDataList = [];
+
+    for (int i = 0; i < users.length; i++) {
+      final provider = users[i];
+     // final email = provider['email'];
+
+      userDataList.add({
+        'name': provider['name'],
+        'nameAr': provider['nameAr'],
+      //  'email': provider['email'],
+      //  'image': provider['image'],
+        'des': provider['des'],
+        'desAr': provider['desAr'],
+        'cat': provider['cat'],
+        'catAr': provider['catAr'],
+        'rate': provider['rate'],
+      });
+    }
+
+    final arabicHeaders = LinkedHashMap<String, String>.from({
+      'name': 'الاسم',
+      'nameAr': 'الاسم بالعربي',
+      'des': 'الوصف',
+      'desAr': 'الوصف بالعربي',
+      'cat': 'القسم',
+      'catAr': 'القسم بالعربي',
+      'rate': 'التقييم',
+    });
+
+    String jsonData = jsonEncode(userDataList.map((transaction) {
+      Map<String, dynamic> converted = Map<String, dynamic>.from(transaction);
+      Map<String, dynamic> translated = {};
+
+      arabicHeaders.forEach((key, arabicKey) {
+        var value = converted[key];
+        translated[arabicKey] = value;
+      });
+
+      return translated;
+    }).toList());
+
+    List<dynamic> jsonList = jsonDecode(jsonData);
+    print('✅ Parsed ${jsonList.length} records');
+
+    var excel = Excel.createExcel();
+    Sheet sheet = excel['Sheet1'];
+    print('✅ Excel sheet created');
+
+    // Define general RTL cell style
+    final baseStyle = CellStyle(
+      horizontalAlign: HorizontalAlign.Right,
+    );
+
+    // Write headers
+    final headers = arabicHeaders.values.toList();
+    for (int i = 0; i < headers.length; i++) {
+      var cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      cell.value = TextCellValue(headers[i]); // Use TextCellValue
+      cell.cellStyle = baseStyle;
+    }
+
+    print('✅ Headers written with RTL style');
+
+    // Write data rows
+    for (int row = 0; row < jsonList.length; row++) {
+      final item = jsonList[row] as Map<String, dynamic>;
+      for (int col = 0; col < headers.length; col++) {
+        var header = headers[col];
+        var value = item[header];
+        var displayValue = value?.toString() ?? '';
+
+        var cell = sheet.cell(
+            CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row + 1));
+        cell.value = TextCellValue(displayValue); // Use TextCellValue
+        cell.cellStyle = baseStyle;
+      }
+    }
+
+    print('✅ Data rows written');
+
+    // Export
+    var bytes = excel.encode();
+    if (bytes == null) {
+      print('❌ Failed to encode Excel');
+      return;
+    }
+
+    final blob = html.Blob([Uint8List.fromList(bytes)]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", "المنتجات.xlsx")
+      ..click();
+    html.Url.revokeObjectUrl(url);
+
+    print('🎉 Excel file downloaded successfully!');
+  } catch (e) {
+    print('❌ Export failed: $e');
+    print('🚨 Stack trace: ${e is Error ? e.stackTrace : ''}');
+  } finally {
+    setState(() {
+      isLoadingExcel = false;
+    });
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +165,7 @@ class _OrdersViewState extends State<OrdersView> {
         ),
         centerTitle: true,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [ColorsManager.primary, ColorsManager.primary2],
               begin: Alignment.topCenter,
@@ -59,6 +181,7 @@ class _OrdersViewState extends State<OrdersView> {
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                
                   if (widget.status == 'waiting') _buildOrdersWidget(),
                   if (widget.status == 'del') _buildDelOrdersWidget(),
                   if (widget.status == 'approved') _buildApprovedOrdersWidget(),
@@ -377,7 +500,7 @@ class _OrdersViewState extends State<OrdersView> {
         children: [
           Row(
             children: [
-              Icon(Icons.calendar_today, size: 16, color: ColorsManager.primary),
+              const Icon(Icons.calendar_today, size: 16, color: ColorsManager.primary),
               const SizedBox(width: 8),
               const Text(
                 'تاريخ الطلب:',
@@ -390,7 +513,7 @@ class _OrdersViewState extends State<OrdersView> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.access_time, size: 16, color: ColorsManager.primary),
+              const Icon(Icons.access_time, size: 16, color: ColorsManager.primary),
               const SizedBox(width: 8),
               const Text(
                 'وقت الطلب:',
@@ -474,7 +597,7 @@ class _OrdersViewState extends State<OrdersView> {
     return Center(
       child: Text(
         "الإجمالي: ${posts['total']} ر.س",
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: ColorsManager.primary,

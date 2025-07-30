@@ -121,7 +121,7 @@ class EditProduct extends StatelessWidget {
                             // Product Name (Arabic)
                             _SectionTitle('الاسم'),
                             _LabeledTextField(
-                              controller: cubit.nameController,
+                              controller: cubit.nameArController,
                               hint: posts['nameAr'],
                             ),
 
