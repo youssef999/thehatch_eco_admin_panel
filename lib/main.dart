@@ -8,8 +8,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc_obs.dart';
 
-
  void main()async {
+
   Bloc.observer = MyBlocObserver();
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
@@ -22,6 +22,7 @@ import 'bloc_obs.dart';
           projectId: "businessapp-f0d62",)
   );
   runApp(const MyApp());
+  
  }
 
 

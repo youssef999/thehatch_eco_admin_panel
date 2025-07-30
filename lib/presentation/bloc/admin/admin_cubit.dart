@@ -323,6 +323,7 @@ changeCatData2(String val){
           'images':images,
           'productid': result,
           'brand':'',
+          'rate':0,
           'quant':num.parse(quantController.text),
           'date':DateTime.now().toString(),
           'oldPrice':num.parse(oldController.text),

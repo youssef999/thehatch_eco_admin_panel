@@ -154,13 +154,13 @@ class ImageWidget extends StatelessWidget {
                     right: 8,
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.black54,
                         shape: BoxShape.circle,
                       ),
                       child: GestureDetector(
                    //     onTap: () => controller.removeImage(index),
-                        child: Icon(Icons.close,
+                        child: const Icon(Icons.close,
                             size: 20,
                             color: Colors.white),
                       ),

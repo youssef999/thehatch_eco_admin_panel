@@ -14,6 +14,8 @@ class OrdersView extends StatefulWidget {
 }
 
 class _OrdersViewState extends State<OrdersView> {
+  bool _isLoading = false;
+
   @override
   void initState() {
     print("ST===${widget.status}");
@@ -25,47 +27,44 @@ class _OrdersViewState extends State<OrdersView> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 26),
+          icon: const Icon(Icons.arrow_back_ios, size: 26, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         elevation: 0,
-        toolbarHeight: 55,
+        toolbarHeight: 60,
         backgroundColor: ColorsManager.primary,
         title: Text(
           _getAppBarTitle(),
           style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
         ),
         centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [ColorsManager.primary, ColorsManager.primary2],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
       ),
       body: Container(
-        color: ColorsManager.primary2,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: ListView(
-          children: [
-            const SizedBox(height: 16),
-            if (widget.status == 'waiting') Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: OrdersWidget(),
-            ),
-            if (widget.status == 'del') Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DelOrdersWidget(),
-            ),
-            if (widget.status == 'approved') Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ApprovedOrdersWidget(),
-            ),
-            if (widget.status == 'refuse') Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CanceledOrdersWidget(),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+        color: Colors.grey[100],
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (widget.status == 'waiting') _buildOrdersWidget(),
+                  if (widget.status == 'del') _buildDelOrdersWidget(),
+                  if (widget.status == 'approved') _buildApprovedOrdersWidget(),
+                  if (widget.status == 'refuse') _buildCanceledOrdersWidget(),
+                ],
+              ),
       ),
     );
   }
@@ -85,7 +84,7 @@ class _OrdersViewState extends State<OrdersView> {
     }
   }
 
-  Widget OrdersWidget() {
+  Widget _buildOrdersWidget() {
     return _buildOrderList(
       status: 'waiting',
       actionButtons: (posts) => Row(
@@ -94,24 +93,24 @@ class _OrdersViewState extends State<OrdersView> {
           _buildActionButton(
             text: 'موافقة',
             color: Colors.green,
-            onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
+            onTap: () => _handleEditOrderStatus(posts, 'approved'),
           ),
           _buildActionButton(
             text: 'تم التسليم',
             color: Colors.blue,
-            onTap: () => EditOrderStatus(posts: posts, status: 'del'),
+            onTap: () => _handleEditOrderStatus(posts, 'del'),
           ),
           _buildActionButton(
             text: 'رفض',
             color: Colors.red,
-            onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
+            onTap: () => _handleEditOrderStatus(posts, 'refuse'),
           ),
         ],
       ),
     );
   }
 
-  Widget ApprovedOrdersWidget() {
+  Widget _buildApprovedOrdersWidget() {
     return _buildOrderList(
       status: 'approved',
       actionButtons: (posts) => Row(
@@ -120,53 +119,32 @@ class _OrdersViewState extends State<OrdersView> {
           _buildActionButton(
             text: 'تم التسليم',
             color: Colors.blue,
-            onTap: () => EditOrderStatus(posts: posts, status: 'del'),
+            onTap: () => _handleEditOrderStatus(posts, 'del'),
           ),
           _buildActionButton(
             text: 'رفض',
             color: Colors.red,
-            onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
+            onTap: () => _handleEditOrderStatus(posts, 'refuse'),
           ),
         ],
       ),
     );
   }
 
-  EditOrderStatus({
-    required DocumentSnapshot posts,
-    required String status,
-  }) async {
-    final CollectionReference _updates =
-    FirebaseFirestore.instance.collection('orders');
-    await _updates
-        .where('order_id', isEqualTo: posts['order_id'])
-        .get()
-        .then((snapshot) {
-      snapshot.docs.last.reference.update({
-        'status': status,
-        // 'rate': 0.0,
-      }).then((value) {
-        // appMessage(text: 'تم تعديل الحالة بنجاح');
-        // Get.offAll(const AdminView());
-        print("EDITED");
-      });
-    });
-  }
-
-  Widget CanceledOrdersWidget() {
+  Widget _buildCanceledOrdersWidget() {
     return _buildOrderList(
       status: 'refuse',
       actionButtons: (posts) => Center(
         child: _buildActionButton(
           text: 'موافقة',
           color: Colors.green,
-          onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
+          onTap: () => _handleEditOrderStatus(posts, 'approved'),
         ),
       ),
     );
   }
 
-  Widget DelOrdersWidget() {
+  Widget _buildDelOrdersWidget() {
     return _buildOrderList(
       status: 'del',
       actionButtons: (posts) => Row(
@@ -175,16 +153,63 @@ class _OrdersViewState extends State<OrdersView> {
           _buildActionButton(
             text: 'موافقة',
             color: Colors.green,
-            onTap: () => EditOrderStatus(posts: posts, status: 'approved'),
+            onTap: () => _handleEditOrderStatus(posts, 'approved'),
           ),
           _buildActionButton(
             text: 'رفض',
             color: Colors.red,
-            onTap: () => EditOrderStatus(posts: posts, status: 'refuse'),
+            onTap: () => _handleEditOrderStatus(posts, 'refuse'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleEditOrderStatus(DocumentSnapshot posts, String status) async {
+    setState(() => _isLoading = true);
+    
+    // Print user email from orders
+    final userEmail = posts['user_email'];
+    print('User Email: $userEmail');
+
+    // Get and print token from Users collection
+    try {
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('Users')
+          .where('email', isEqualTo: userEmail)
+          .get();
+      
+      if (userSnapshot.docs.isNotEmpty) {
+        final token = userSnapshot.docs.first['token'];
+        print('User Token: $token');
+      } else {
+        print('No user found with email: $userEmail');
+      }
+    } catch (e) {
+      print('Error fetching user token: $e');
+    }
+
+    // Update order status
+    await _editOrderStatus(posts: posts, status: status);
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _editOrderStatus({
+    required DocumentSnapshot posts,
+    required String status,
+  }) async {
+    final CollectionReference updates =
+        FirebaseFirestore.instance.collection('orders');
+    await updates
+        .where('order_id', isEqualTo: posts['order_id'])
+        .get()
+        .then((snapshot) {
+      snapshot.docs.last.reference.update({
+        'status': status,
+      }).then((value) {
+        print("Order status updated to $status");
+      });
+    });
   }
 
   Widget _buildOrderList({
@@ -198,21 +223,20 @@ class _OrdersViewState extends State<OrdersView> {
           .orderBy('date', descending: true)
           .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (!snapshot.hasData || snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Padding(
+          return Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: const Padding(
               padding: EdgeInsets.all(20.0),
               child: Text(
                 'لا توجد طلبات',
                 style: TextStyle(fontSize: 18, color: Colors.grey),
+                textAlign: TextAlign.center,
               ),
             ),
           );
@@ -222,13 +246,18 @@ class _OrdersViewState extends State<OrdersView> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: snapshot.data!.docs.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.75,
+          ),
           itemBuilder: (context, index) {
             DocumentSnapshot posts = snapshot.data!.docs[index];
             List order = posts['order'];
 
             return Card(
-              elevation: 2,
-              margin: const EdgeInsets.only(bottom: 20),
+              elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -238,59 +267,62 @@ class _OrdersViewState extends State<OrdersView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildOrderHeader(posts),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildCustomerInfo(posts),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildAddressInfo(posts),
-                    const Divider(height: 24, thickness: 1),
+                    const Divider(height: 20, thickness: 1),
                     _buildOrderDateAndTime(posts),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildOrderItemsHeader(),
-                    ..._buildOrderItems(order),
-                    const SizedBox(height: 16),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(children: _buildOrderItems(order)),
+                      ),
+                    ),
                     _buildOrderTotal(posts),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     _buildOrderStatus(posts),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     actionButtons(posts),
-                    // if (posts['status'] != 'waiting')...[
-                    //   const SizedBox(height: 8),
-                    //   _buildDeleteButton(posts),
-                    // ],
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             );
-          }, gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, crossAxisSpacing: 8, mainAxisSpacing: 8,
-          childAspectRatio: 0.66
-        ),
+          },
         );
       },
     );
   }
 
   Widget _buildOrderHeader(DocumentSnapshot posts) {
-    return Column(
-      children: [
-        const Text(
-          'رقم الطلب:',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: ColorsManager.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'رقم الطلب:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          posts['order_id'],
-          style: const TextStyle(
-            fontSize: 18,
-            color: Colors.black,
+          const SizedBox(height: 4),
+          Text(
+            posts['order_id'],
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -303,6 +335,7 @@ class _OrdersViewState extends State<OrdersView> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
@@ -313,7 +346,7 @@ class _OrdersViewState extends State<OrdersView> {
     );
   }
 
-  Widget _buildAddressInfo(DocumentSnapshot posts){
+  Widget _buildAddressInfo(DocumentSnapshot posts) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -322,6 +355,7 @@ class _OrdersViewState extends State<OrdersView> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
@@ -333,34 +367,41 @@ class _OrdersViewState extends State<OrdersView> {
   }
 
   Widget _buildOrderDateAndTime(DocumentSnapshot posts) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.calendar_today, size: 16),
-            const SizedBox(width: 8),
-            const Text(
-              'تاريخ الطلب:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            Text(posts['date'] ?? 'N/A'),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(Icons.access_time, size: 16),
-            const SizedBox(width: 8),
-            const Text(
-              'وقت الطلب:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            Text(posts['time'] ?? 'N/A'),
-          ],
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: 16, color: ColorsManager.primary),
+              const SizedBox(width: 8),
+              const Text(
+                'تاريخ الطلب:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              Text(posts['date'] ?? 'N/A'),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 16, color: ColorsManager.primary),
+              const SizedBox(width: 8),
+              const Text(
+                'وقت الطلب:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              Text(posts['time'] ?? 'N/A'),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -370,67 +411,71 @@ class _OrdersViewState extends State<OrdersView> {
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
+        color: Colors.black87,
       ),
     );
   }
 
   List<Widget> _buildOrderItems(List order) {
     return List.generate(order.length, (i) {
-      return Column(
-        children: [
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  order[i]['image'],
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.cover,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                order[i]['image'],
+                height: 60,
+                width: 60,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 60,
+                  width: 60,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.image_not_supported),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      order[i]['name'],
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    order[i]['name'],
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${order[i]['price']} ',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${order[i]['price']} ر.س',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Text(
-                "x${order[i]['quant']}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const Divider(height: 24, thickness: 1),
-        ],
+            ),
+            Text(
+              "x${order[i]['quant']}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       );
     });
   }
 
-  Widget _buildOrderTotal(DocumentSnapshot posts){
+  Widget _buildOrderTotal(DocumentSnapshot posts) {
     return Center(
       child: Text(
-        "الإجمالي: ${posts['total']} ",
-        style: const TextStyle(
-          fontSize: 24,
+        "الإجمالي: ${posts['total']} ر.س",
+        style: TextStyle(
+          fontSize: 20,
           fontWeight: FontWeight.bold,
           color: ColorsManager.primary,
         ),
@@ -457,59 +502,56 @@ class _OrdersViewState extends State<OrdersView> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          status,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: _getStatusColor(posts['status']),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _getStatusColor(posts['status']).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            status,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: _getStatusColor(posts['status']),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Widget _buildDeleteButton(DocumentSnapshot posts) {
-  //   return
-  //     Center(
-  //     child: TextButton(
-  //       style: TextButton.styleFrom(
-  //         backgroundColor: Colors.red,
-  //         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 9),
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(8),
-  //         ),
-  //       ),
-  //       //onPressed: () => DeleteDataInFireBase(posts: posts),
-  //       onPressed: () {},
-  //       child: const Text(
-  //         'حذف',
-  //         style: TextStyle(color: Colors.white,fontSize: 24),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget _buildActionButton({
     required String text,
     required Color color,
     required VoidCallback onTap,
   }) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            elevation: 2,
+          ),
+          onPressed: onTap,
+          child: Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-      ),
-      onPressed: onTap,
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white),
       ),
     );
   }
@@ -522,14 +564,20 @@ class _OrdersViewState extends State<OrdersView> {
           width: 100,
           child: Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
           ),
         ),
       ],

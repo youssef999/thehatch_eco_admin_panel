@@ -2,14 +2,11 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:shop_app/presentation/const/app_message.dart';
 import 'package:shop_app/presentation/resources/color_manager.dart';
 import 'package:shop_app/presentation/views/admin/admin_view.dart';
-import 'package:shop_app/presentation/views/admin/products/product_details.dart';
 import 'package:shop_app/presentation/widgets/Custom_Text.dart';
-import 'package:shop_app/presentation/widgets/Custom_button.dart';
 
 class CatView extends StatelessWidget {
   const CatView({Key? key}) : super(key: key);
@@ -59,7 +56,6 @@ class CatWidget extends StatelessWidget {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               DocumentSnapshot post = snapshot.data!.docs[index];
-
               return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: MouseRegion(
@@ -135,7 +131,6 @@ class CatWidget extends StatelessWidget {
                   ),
                 ),
               );
-
             },
           ),
         );

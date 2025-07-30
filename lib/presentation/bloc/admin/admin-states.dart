@@ -61,6 +61,16 @@ class AddNewCatSuccessState extends AdminStates{
 
   AddNewCatSuccessState();
 }
+class AddNewCatLoadingState extends AdminStates{
+
+
+  AddNewCatLoadingState();
+}
+class AddNewCatErrorState extends AdminStates{
+
+
+ AddNewCatErrorState();
+}
 
 class EditProductsSuccessState extends AdminStates{
 

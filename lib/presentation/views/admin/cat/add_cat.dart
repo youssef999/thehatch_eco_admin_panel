@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:shop_app/auth_service.dart';
 import 'package:shop_app/presentation/widgets/Custom_Text.dart';
 import '../../../../const/cat_controller.dart';
 import '../../../../const/image_widget.dart';
@@ -13,9 +15,99 @@ import '../../../widgets/Custom_button.dart';
 import '../../../widgets/custom_textformfield.dart';
 import '../admin_view.dart';
 
-class AddNewCat extends StatelessWidget {
+class AddNewCat extends StatefulWidget {
   const AddNewCat({Key? key}) : super(key: key);
 
+  @override
+  State<AddNewCat> createState() => _AddNewCatState();
+}
+
+class _AddNewCatState extends State<AddNewCat> {
+
+Future<void> autoSignIn(BuildContext context) async {
+   final FirebaseAuth _auth = FirebaseAuth.instance;
+    const String email = 'test@gmail.com';
+    const String password = '123456';
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // Attempt to sign in with email and password
+       await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      // Check if user is signed in
+      // if (userCredential.user != null) {
+      //   Get.snackbar(
+      //     'نجاح',
+      //     'تم تسجيل الدخول بنجاح',
+      //     snackPosition: SnackPosition.BOTTOM,
+      //     backgroundColor: Colors.green,
+      //     colorText: Colors.white,
+      //   );
+      //   // Navigate to the desired screen (e.g., AdminView)
+      //   Get.offAllNamed('/adminView'); // Adjust route name as needed
+      // }
+    } on FirebaseAuthException catch (e) {
+      // Close loading indicator
+    //  Navigator.pop(context);
+
+      // Handle specific Firebase Auth errors
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'لم يتم العثور على حساب بهذا البريد الإلكتروني';
+          break;
+        case 'wrong-password':
+          errorMessage = 'كلمة المرور غير صحيحة';
+          break;
+        case 'invalid-email':
+          errorMessage = 'البريد الإلكتروني غير صالح';
+          break;
+        case 'user-disabled':
+          errorMessage = 'تم تعطيل هذا الحساب';
+          break;
+        default:
+          errorMessage = 'حدث خطأ: ${e.message}';
+      }
+
+      // Show error message
+      Get.snackbar(
+        'خطأ',
+        errorMessage,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      // Close loading indicator
+      Navigator.pop(context);
+
+      // Handle unexpected errors
+      Get.snackbar(
+        'خطأ',
+        'حدث خطأ غير متوقع: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+  @override
+  void initState() {
+ WidgetsBinding.instance.addPostFrameCallback((_) { autoSignIn(context); });
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     CatController catController = Get.put(CatController());
